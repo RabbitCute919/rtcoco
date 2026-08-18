@@ -4,112 +4,156 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>คลังสรุปและข้อสอบรายวิชา</title>
-    <!-- ใช้ Tailwind CSS เพื่อการจัดแต่งที่สวยงาม -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Prompt', sans-serif; }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen p-4 md:p-8">
+<body class="bg-slate-100 text-slate-800 min-h-screen p-4 md:p-8">
 
-    <div class="max-w-4xl mx-auto space-y-6">
-        <!-- ส่วนหัวเว็บ -->
+    <div class="max-w-5xl mx-auto space-y-6">
+        
+        <!-- Header -->
         <header class="text-center py-4">
-            <h1 class="text-3xl font-bold text-indigo-700">📚 คลังรวมสรุป & ข้อสอบ</h1>
-            <p class="text-slate-500 mt-1">เก็บทุกลิงก์การเรียนไว้ในที่เดียว เปิดอ่านง่าย ทบทวนสะดวก</p>
+            <h1 class="text-3xl md:text-4xl font-bold text-indigo-700">📚 คลังรวมสรุป & ข้อสอบ</h1>
+            <p class="text-slate-500 mt-1">จัดระเบียบลิงก์ทบทวนบทเรียน แยกตามหมวดหมู่และรายวิชา</p>
         </header>
 
-        <!-- ฟอร์มเพิ่มวิชาใหม่ -->
-        <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex gap-2">
-            <input id="newSubjectInput" type="text" placeholder="พิมพ์ชื่อวิชาใหม่ที่ต้องการเพิ่ม..." 
-                   class="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            <button onclick="addSubject()" 
-                    class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-lg font-medium transition">
-                + เพิ่มวิชา
-            </button>
+        <!-- ฟอร์มเพิ่มวิชาใหม่ พร้อมเลือกหมวดหมู่ -->
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-3">
+            <h2 class="text-sm font-semibold text-slate-600 flex items-center gap-1.5">
+                <span>➕</span> เพิ่มวิชาใหม่เข้าคลัง
+            </h2>
+            <div class="flex flex-col md:flex-row gap-2">
+                <!-- เลือกหมวดหมู่ -->
+                <select id="newSubjectCategory" class="px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 text-sm font-medium">
+                    <option value="เทอม 1">📌 เทอม 1</option>
+                    <option value="เทอม 2">📌 เทอม 2</option>
+                    <option value="วิทย์ - คณิต">🔬 วิทย์ - คณิต</option>
+                    <option value="ภาษา">🌐 ภาษา</option>
+                    <option value="สังคม / ทั่วไป">📖 สังคม / ทั่วไป</option>
+                    <option value="อื่นๆ">📁 อื่นๆ</option>
+                </select>
+
+                <!-- ชื่อวิชา -->
+                <input id="newSubjectInput" type="text" placeholder="พิมพ์ชื่อวิชา เช่น ชีววิทยา บทที่ 1-3, แคลคูลัส..." 
+                       class="flex-1 px-4 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                
+                <button onclick="addSubject()" 
+                        class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-xl font-medium transition text-sm flex items-center justify-center gap-1 shadow-sm">
+                    เพิ่มวิชา
+                </button>
+            </div>
         </div>
 
-        <!-- รายการวิชาทั้งหมด -->
-        <div id="subjectList" class="space-y-4">
-            <!-- ข้อมูลจะถูก render ที่นี่ -->
+        <!-- แถบกรองสัดส่วน / หมวดหมู่ (Category Filter Bar) -->
+        <div class="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none" id="categoryFilterBar">
+            <!-- สร้างปุ่มหมวดหมู่ด้วย JS -->
         </div>
+
+        <!-- พื้นที่แสดงรายวิชาทั้งหมด -->
+        <div id="subjectList" class="space-y-6">
+            <!-- Render รายการวิชา -->
+        </div>
+
     </div>
 
-    <!-- Modal เพิ่มลิงก์ -->
-    <div id="linkModal" class="fixed inset-0 bg-black/40 hidden items-center justify-center p-4">
-        <div class="bg-white p-6 rounded-xl max-w-md w-full shadow-lg space-y-4">
-            <h3 id="modalTitle" class="text-lg font-bold text-slate-800">เพิ่มลิงก์ใหม่</h3>
+    <!-- Modal สำหรับเพิ่มลิงก์ -->
+    <div id="linkModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-white p-6 rounded-2xl max-w-md w-full shadow-xl space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                <h3 class="text-base font-bold text-slate-800">🔗 เพิ่มลิงก์บทเรียน</h3>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600">✕</button>
+            </div>
             <input type="hidden" id="modalSubjectId">
             
             <div>
-                <label class="block text-sm font-medium text-slate-600 mb-1">ประเภทลิงก์</label>
-                <select id="modalLinkType" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    <option value="summary">📝 ลิงก์สรุปเนื้อหา</option>
-                    <option value="exam">🎯 ลิงก์ข้อสอบ / แบบฝึกหัด</option>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">เลือกประเภทสัดส่วน</label>
+                <select id="modalLinkType" class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                    <option value="summary">📝 สรุปเนื้อหา / เลกเชอร์</option>
+                    <option value="exam">🎯 ข้อสอบ / แนวข้อสอบ / ควิซ</option>
                 </select>
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-slate-600 mb-1">ชื่อหัวข้อ / คำอธิบาย</label>
-                <input id="modalLinkTitle" type="text" placeholder="เช่น สรุปบทที่ 1, ควิซท้ายคาบ" 
-                       class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <label class="block text-xs font-semibold text-slate-600 mb-1">ชื่อลิงก์ / คำอธิบายสั้นๆ</label>
+                <input id="modalLinkTitle" type="text" placeholder="เช่น สรุปสูตรตรีโกณ, ตะลุยโจทย์ปลายภาค" 
+                       class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-slate-600 mb-1">URL (ลิงก์)</label>
-                <input id="modalLinkUrl" type="url" placeholder="https://..." 
-                       class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <label class="block text-xs font-semibold text-slate-600 mb-1">URL (ลิงก์ปลายทาง)</label>
+                <input id="modalLinkUrl" type="url" placeholder="https://drive.google.com/..." 
+                       class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
             </div>
 
             <div class="flex justify-end gap-2 pt-2">
-                <button onclick="closeModal()" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg">ยกเลิก</button>
-                <button onclick="saveLink()" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">บันทึก</button>
+                <button onclick="closeModal()" class="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-xl">ยกเลิก</button>
+                <button onclick="saveLink()" class="px-5 py-2 text-sm bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 font-medium shadow-sm">บันทึกข้อมูล</button>
             </div>
         </div>
     </div>
 
     <script>
-        // โหลดข้อมูลจาก LocalStorage หรือเริ่มจากชุดตัวอย่าง
-        let subjects = JSON.parse(localStorage.getItem('study_vault_data')) || [
+        // ข้อมูลตัวอย่างเริ่มต้น
+        let subjects = JSON.parse(localStorage.getItem('study_vault_v2')) || [
             {
                 id: '1',
-                name: 'คณิตศาสตร์พื้นฐาน',
-                summaries: [{ title: 'สรุปบทฟังก์ชัน', url: 'https://google.com' }],
-                exams: [{ title: 'แบบฝึกหัดท้ายบท', url: 'https://google.com' }]
+                category: 'วิทย์ - คณิต',
+                name: 'คณิตศาสตร์เพิ่มเติม',
+                summaries: [{ title: 'สรุปสูตรตรีโกณมิติ', url: 'https://google.com' }],
+                exams: [{ title: 'ข้อสอบจำลองกลางภาค 65', url: 'https://google.com' }]
+            },
+            {
+                id: '2',
+                category: 'ภาษา',
+                name: 'ภาษาอังกฤษเพื่อการสื่อสาร',
+                summaries: [{ title: 'ชีทสรุป 12 Tenses', url: 'https://google.com' }],
+                exams: [{ title: 'แบบฝึกหัดคำศัพท์ Vocab Test', url: 'https://google.com' }]
             }
         ];
 
+        let currentCategory = 'ทั้งหมด';
+
         function saveData() {
-            localStorage.setItem('study_vault_data', JSON.stringify(subjects));
+            localStorage.setItem('study_vault_v2', JSON.stringify(subjects));
             render();
         }
 
         function addSubject() {
             const input = document.getElementById('newSubjectInput');
+            const categorySelect = document.getElementById('newSubjectCategory');
             const name = input.value.trim();
-            if (!name) return;
+            const category = categorySelect.value;
+
+            if (!name) {
+                alert('กรุณาพิมพ์ชื่อวิชา');
+                return;
+            }
 
             subjects.push({
                 id: Date.now().toString(),
+                category: category,
                 name: name,
                 summaries: [],
                 exams: []
             });
+
             input.value = '';
             saveData();
         }
 
         function deleteSubject(id) {
-            if (confirm('ต้องการลบวิชานี้และลิงก์ทั้งหมดใช่หรือไม่?')) {
+            if (confirm('คุณต้องการลบวิชานี้และข้อมูลลิงก์ทั้งหมดใช่หรือไม่?')) {
                 subjects = subjects.filter(s => s.id !== id);
                 saveData();
             }
         }
 
-        function openAddLinkModal(subjectId, defaultType = 'summary') {
+        function openAddLinkModal(subjectId) {
             document.getElementById('modalSubjectId').value = subjectId;
-            document.getElementById('modalLinkType').value = defaultType;
             document.getElementById('modalLinkTitle').value = '';
             document.getElementById('modalLinkUrl').value = '';
             document.getElementById('linkModal').classList.remove('hidden');
@@ -138,6 +182,9 @@
 
             const subject = subjects.find(s => s.id === id);
             if (subject) {
+                if (!subject.summaries) subject.summaries = [];
+                if (!subject.exams) subject.exams = [];
+
                 if (type === 'summary') {
                     subject.summaries.push({ title, url });
                 } else {
@@ -157,63 +204,116 @@
             }
         }
 
+        function setFilter(cat) {
+            currentCategory = cat;
+            render();
+        }
+
+        function renderFilterBar() {
+            const categories = ['ทั้งหมด', 'เทอม 1', 'เทอม 2', 'วิทย์ - คณิต', 'ภาษา', 'สังคม / ทั่วไป', 'อื่นๆ'];
+            const bar = document.getElementById('categoryFilterBar');
+            
+            bar.innerHTML = categories.map(cat => {
+                const isActive = currentCategory === cat;
+                return `
+                    <button onclick="setFilter('${cat}')" 
+                            class="px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition ${
+                                isActive 
+                                ? 'bg-indigo-600 text-white shadow-sm' 
+                                : 'bg-white text-slate-600 hover:bg-slate-200 border border-slate-200'
+                            }">
+                        ${cat}
+                    </button>
+                `;
+            }).join('');
+        }
+
         function render() {
+            renderFilterBar();
             const container = document.getElementById('subjectList');
-            if (subjects.length === 0) {
-                container.innerHTML = `<div class="text-center py-10 text-slate-400">ยังไม่มีรายวิชา เริ่มต้นเพิ่มวิชาแรกของคุณด้านบนได้เลย!</div>`;
+
+            // กรองตามหมวดหมู่ที่เลือก
+            const filteredSubjects = currentCategory === 'ทั้งหมด' 
+                ? subjects 
+                : subjects.filter(s => s.category === currentCategory);
+
+            if (filteredSubjects.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12 bg-white rounded-2xl border border-dashed border-slate-300 p-8">
+                        <p class="text-3xl mb-2">📂</p>
+                        <p class="text-slate-500 font-medium">ยังไม่มีรายวิชาในสัดส่วนนี้</p>
+                        <p class="text-xs text-slate-400 mt-1">สามารถเลือกหมวดหมู่และเพิ่มวิชาใหม่ได้ที่แถบด้านบน</p>
+                    </div>
+                `;
                 return;
             }
 
-            container.innerHTML = subjects.map(sub => `
-                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                    <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
-                        <h2 class="font-bold text-lg text-slate-800">${sub.name}</h2>
-                        <div class="flex gap-2">
-                            <button onclick="openAddLinkModal('${sub.id}')" class="text-xs bg-indigo-50 text-indigo-600 hover:bg-indigo-100 font-medium px-3 py-1.5 rounded-lg">
-                                + เพิ่มลิงก์
+            container.innerHTML = filteredSubjects.map(sub => `
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden transition hover:shadow-md">
+                    <!-- หัวการ์ดวิชา -->
+                    <div class="p-4 bg-slate-50/80 border-b border-slate-200 flex flex-wrap justify-between items-center gap-2">
+                        <div class="flex items-center gap-2.5">
+                            <span class="text-xs font-semibold px-2.5 py-1 rounded-lg bg-indigo-100 text-indigo-700">
+                                ${sub.category || 'ทั่วไป'}
+                            </span>
+                            <h2 class="font-bold text-base md:text-lg text-slate-800">${sub.name}</h2>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="openAddLinkModal('${sub.id}')" 
+                                    class="text-xs bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-3 py-1.5 rounded-lg flex items-center gap-1 transition">
+                                <span>+</span> เพิ่มลิงก์
                             </button>
-                            <button onclick="deleteSubject('${sub.id}')" class="text-xs text-rose-500 hover:bg-rose-50 px-2 py-1.5 rounded-lg">
-                                ลบวิชา
+                            <button onclick="deleteSubject('${sub.id}')" 
+                                    class="text-xs text-slate-400 hover:text-rose-500 hover:bg-rose-50 px-2 py-1.5 rounded-lg transition" title="ลบวิชา">
+                                🗑️ ลบ
                             </button>
                         </div>
                     </div>
                     
+                    <!-- ส่วนแบ่งสัดส่วนเนื้อหา (2 คอลัมน์) -->
                     <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <!-- โซนสรุป -->
-                        <div class="space-y-2">
-                            <div class="flex items-center gap-1.5 text-xs font-semibold text-emerald-600 uppercase">
-                                <span>📝 สรุปเนื้อหา</span>
+                        
+                        <!-- สัดส่วนที่ 1: สรุปเนื้อหา -->
+                        <div class="space-y-2 bg-emerald-50/40 p-3 rounded-xl border border-emerald-100/70">
+                            <div class="flex items-center justify-between text-xs font-bold text-emerald-700 uppercase">
+                                <span>📝 สรุปเนื้อหา / เลกเชอร์</span>
+                                <span class="bg-emerald-200/60 px-1.5 py-0.5 rounded text-[10px]">${(sub.summaries || []).length} ลิงก์</span>
                             </div>
                             <div class="space-y-1.5">
-                                ${sub.summaries.length ? sub.summaries.map((item, idx) => `
-                                    <div class="group flex items-center justify-between p-2 rounded-lg bg-emerald-50/50 hover:bg-emerald-50 border border-emerald-100">
-                                        <a href="${item.url}" target="_blank" class="text-sm text-slate-700 hover:text-emerald-700 truncate flex-1 font-medium">🔗 ${item.title}</a>
-                                        <button onclick="deleteLink('${sub.id}', 'summary', ${idx})" class="text-slate-400 hover:text-rose-500 ml-2 text-xs">✕</button>
+                                ${(sub.summaries && sub.summaries.length) ? sub.summaries.map((item, idx) => `
+                                    <div class="flex items-center justify-between p-2 rounded-lg bg-white hover:bg-emerald-50 border border-emerald-100 transition shadow-2xs">
+                                        <a href="${item.url}" target="_blank" class="text-xs md:text-sm text-slate-700 hover:text-emerald-700 truncate flex-1 font-medium">
+                                            📄 ${item.title}
+                                        </a>
+                                        <button onclick="deleteLink('${sub.id}', 'summary', ${idx})" class="text-slate-300 hover:text-rose-500 ml-2 text-xs">✕</button>
                                     </div>
-                                `).join('') : '<p class="text-xs text-slate-400 italic">ยังไม่มีลิงก์สรุป</p>'}
+                                `).join('') : '<p class="text-xs text-slate-400 italic py-1">ยังไม่มีลิงก์สรุป</p>'}
                             </div>
                         </div>
 
-                        <!-- โซนข้อสอบ -->
-                        <div class="space-y-2">
-                            <div class="flex items-center gap-1.5 text-xs font-semibold text-amber-600 uppercase">
-                                <span>🎯 ข้อสอบ & แบบฝึกหัด</span>
+                        <!-- สัดส่วนที่ 2: ข้อสอบ & แบบฝึกหัด -->
+                        <div class="space-y-2 bg-amber-50/40 p-3 rounded-xl border border-amber-100/70">
+                            <div class="flex items-center justify-between text-xs font-bold text-amber-700 uppercase">
+                                <span>🎯 ข้อสอบ / แนวข้อสอบ</span>
+                                <span class="bg-amber-200/60 px-1.5 py-0.5 rounded text-[10px]">${(sub.exams || []).length} ลิงก์</span>
                             </div>
                             <div class="space-y-1.5">
-                                ${sub.exams.length ? sub.exams.map((item, idx) => `
-                                    <div class="group flex items-center justify-between p-2 rounded-lg bg-amber-50/50 hover:bg-amber-50 border border-amber-100">
-                                        <a href="${item.url}" target="_blank" class="text-sm text-slate-700 hover:text-amber-800 truncate flex-1 font-medium">🔗 ${item.title}</a>
-                                        <button onclick="deleteLink('${sub.id}', 'exam', ${idx})" class="text-slate-400 hover:text-rose-500 ml-2 text-xs">✕</button>
+                                ${(sub.exams && sub.exams.length) ? sub.exams.map((item, idx) => `
+                                    <div class="flex items-center justify-between p-2 rounded-lg bg-white hover:bg-amber-50 border border-amber-100 transition shadow-2xs">
+                                        <a href="${item.url}" target="_blank" class="text-xs md:text-sm text-slate-700 hover:text-amber-800 truncate flex-1 font-medium">
+                                            ✏️ ${item.title}
+                                        </a>
+                                        <button onclick="deleteLink('${sub.id}', 'exam', ${idx})" class="text-slate-300 hover:text-rose-500 ml-2 text-xs">✕</button>
                                     </div>
-                                `).join('') : '<p class="text-xs text-slate-400 italic">ยังไม่มีลิงก์ข้อสอบ</p>'}
+                                `).join('') : '<p class="text-xs text-slate-400 italic py-1">ยังไม่มีลิงก์ข้อสอบ</p>'}
                             </div>
                         </div>
+
                     </div>
                 </div>
             `).join('');
         }
 
-        // Render ข้อมูลครั้งแรกเมื่อเปิดหน้าเว็บ
         render();
     </script>
 </body>
