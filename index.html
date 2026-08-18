@@ -18,23 +18,25 @@
         <!-- Header -->
         <header class="text-center py-4">
             <h1 class="text-3xl md:text-4xl font-bold text-indigo-700">📚 คลังรวมสรุป & ข้อสอบ</h1>
-            <p class="text-slate-500 mt-1">จัดระเบียบลิงก์ทบทวนบทเรียน แยกตามหมวดหมู่และรายวิชา</p>
+            <p class="text-slate-500 mt-1">จัดระเบียบลิงก์ทบทวนบทเรียน แยกสัดส่วนและรายวิชาได้ตามต้องการ</p>
         </header>
 
-        <!-- ฟอร์มเพิ่มวิชาใหม่ พร้อมเลือกหมวดหมู่ -->
+        <!-- ฟอร์มเพิ่มวิชาใหม่ พร้อมเลือกสัดส่วน -->
         <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-3">
-            <h2 class="text-sm font-semibold text-slate-600 flex items-center gap-1.5">
-                <span>➕</span> เพิ่มวิชาใหม่เข้าคลัง
-            </h2>
+            <div class="flex justify-between items-center">
+                <h2 class="text-sm font-semibold text-slate-700 flex items-center gap-1.5">
+                    <span>➕</span> เพิ่มวิชาใหม่เข้าคลัง
+                </h2>
+                <!-- ปุ่มเปิดหน้าต่างจัดการสัดส่วน -->
+                <button onclick="openCategoryModal()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium px-3 py-1.5 rounded-lg flex items-center gap-1 transition">
+                    ⚙️ จัดการสัดส่วน
+                </button>
+            </div>
+            
             <div class="flex flex-col md:flex-row gap-2">
-                <!-- เลือกหมวดหมู่ -->
-                <select id="newSubjectCategory" class="px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 text-sm font-medium">
-                    <option value="เทอม 1">📌 เทอม 1</option>
-                    <option value="เทอม 2">📌 เทอม 2</option>
-                    <option value="วิทย์ - คณิต">🔬 วิทย์ - คณิต</option>
-                    <option value="ภาษา">🌐 ภาษา</option>
-                    <option value="สังคม / ทั่วไป">📖 สังคม / ทั่วไป</option>
-                    <option value="อื่นๆ">📁 อื่นๆ</option>
+                <!-- Dropdown เลือกสัดส่วน -->
+                <select id="newSubjectCategory" class="px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 text-sm font-medium md:w-48">
+                    <!-- รายการสัดส่วนจะถูกเติมด้วย JavaScript -->
                 </select>
 
                 <!-- ชื่อวิชา -->
@@ -43,34 +45,64 @@
                 
                 <button onclick="addSubject()" 
                         class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-xl font-medium transition text-sm flex items-center justify-center gap-1 shadow-sm">
-                    เพิ่มวิชา
+                    + เพิ่มวิชา
                 </button>
             </div>
         </div>
 
-        <!-- แถบกรองสัดส่วน / หมวดหมู่ (Category Filter Bar) -->
+        <!-- แถบกรองสัดส่วน (Filter Tabs) -->
         <div class="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none" id="categoryFilterBar">
             <!-- สร้างปุ่มหมวดหมู่ด้วย JS -->
         </div>
 
         <!-- พื้นที่แสดงรายวิชาทั้งหมด -->
-        <div id="subjectList" class="space-y-6">
+        <div id="subjectList" class="space-y-4">
             <!-- Render รายการวิชา -->
         </div>
 
     </div>
 
-    <!-- Modal สำหรับเพิ่มลิงก์ -->
+    <!-- Modal 1: สำหรับจัดการ/เพิ่ม/ลบ สัดส่วน -->
+    <div id="categoryModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-white p-6 rounded-2xl max-w-md w-full shadow-xl space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                <h3 class="text-base font-bold text-slate-800">⚙️ จัดการสัดส่วน / หมวดหมู่</h3>
+                <button onclick="closeCategoryModal()" class="text-slate-400 hover:text-slate-600 text-lg">✕</button>
+            </div>
+            
+            <!-- ฟอร์มพิมพ์เพิ่มสัดส่วนใหม่ -->
+            <div class="flex gap-2">
+                <input id="customCategoryInput" type="text" placeholder="ชื่อสัดส่วนใหม่ เช่น ม.4 เทอม 1..." 
+                       class="flex-1 px-3 py-2 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <button onclick="addNewCategory()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition">
+                    เพิ่ม
+                </button>
+            </div>
+
+            <!-- รายการสัดส่วนที่มีอยู่เดิม พร้อมปุ่มลบ -->
+            <div class="space-y-1.5 max-h-60 overflow-y-auto pr-1" id="categoryManagerList">
+                <!-- รายการสัดส่วนจะแสดงที่นี่ -->
+            </div>
+
+            <div class="flex justify-end pt-2">
+                <button onclick="closeCategoryModal()" class="px-5 py-2 text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-medium">
+                    ปิดหน้าต่าง
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 2: สำหรับเพิ่มลิงก์สรุปและข้อสอบ -->
     <div id="linkModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
         <div class="bg-white p-6 rounded-2xl max-w-md w-full shadow-xl space-y-4">
             <div class="flex justify-between items-center border-b border-slate-100 pb-3">
                 <h3 class="text-base font-bold text-slate-800">🔗 เพิ่มลิงก์บทเรียน</h3>
-                <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600">✕</button>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 text-lg">✕</button>
             </div>
             <input type="hidden" id="modalSubjectId">
             
             <div>
-                <label class="block text-xs font-semibold text-slate-600 mb-1">เลือกประเภทสัดส่วน</label>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">เลือกประเภท</label>
                 <select id="modalLinkType" class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
                     <option value="summary">📝 สรุปเนื้อหา / เลกเชอร์</option>
                     <option value="exam">🎯 ข้อสอบ / แนวข้อสอบ / ควิซ</option>
@@ -91,45 +123,100 @@
 
             <div class="flex justify-end gap-2 pt-2">
                 <button onclick="closeModal()" class="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-xl">ยกเลิก</button>
-                <button onclick="saveLink()" class="px-5 py-2 text-sm bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 font-medium shadow-sm">บันทึกข้อมูล</button>
+                <button onclick="saveLink()" class="px-5 py-2 text-sm bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 font-medium shadow-sm">บันทึก</button>
             </div>
         </div>
     </div>
 
     <script>
-        // ข้อมูลตัวอย่างเริ่มต้น
-        let subjects = JSON.parse(localStorage.getItem('study_vault_v2')) || [
+        // รายการสัดส่วนเริ่มต้น (โหลดจากเครื่องหรือใช้ค่าเริ่มต้น)
+        let categories = JSON.parse(localStorage.getItem('study_vault_categories')) || [
+            'เทอม 1', 'เทอม 2', 'วิทย์ - คณิต', 'ภาษา', 'ทั่วไป'
+        ];
+
+        // รายการวิชาเริ่มต้น
+        let subjects = JSON.parse(localStorage.getItem('study_vault_v3')) || [
             {
                 id: '1',
                 category: 'วิทย์ - คณิต',
                 name: 'คณิตศาสตร์เพิ่มเติม',
                 summaries: [{ title: 'สรุปสูตรตรีโกณมิติ', url: 'https://google.com' }],
-                exams: [{ title: 'ข้อสอบจำลองกลางภาค 65', url: 'https://google.com' }]
-            },
-            {
-                id: '2',
-                category: 'ภาษา',
-                name: 'ภาษาอังกฤษเพื่อการสื่อสาร',
-                summaries: [{ title: 'ชีทสรุป 12 Tenses', url: 'https://google.com' }],
-                exams: [{ title: 'แบบฝึกหัดคำศัพท์ Vocab Test', url: 'https://google.com' }]
+                exams: [{ title: 'ข้อสอบจำลองกลางภาค', url: 'https://google.com' }]
             }
         ];
 
-        let currentCategory = 'ทั้งหมด';
+        let currentFilter = 'ทั้งหมด';
 
         function saveData() {
-            localStorage.setItem('study_vault_v2', JSON.stringify(subjects));
+            localStorage.setItem('study_vault_v3', JSON.stringify(subjects));
+            localStorage.setItem('study_vault_categories', JSON.stringify(categories));
             render();
         }
 
+        // --- ฟังก์ชันจัดการสัดส่วน ---
+        function openCategoryModal() {
+            document.getElementById('customCategoryInput').value = '';
+            renderCategoryManagerList();
+            document.getElementById('categoryModal').classList.remove('hidden');
+            document.getElementById('categoryModal').classList.add('flex');
+        }
+
+        function closeCategoryModal() {
+            document.getElementById('categoryModal').classList.add('hidden');
+            document.getElementById('categoryModal').classList.remove('flex');
+        }
+
+        function addNewCategory() {
+            const input = document.getElementById('customCategoryInput');
+            const name = input.value.trim();
+            if (!name) {
+                alert('กรุณากรอกชื่อสัดส่วน');
+                return;
+            }
+            if (categories.includes(name)) {
+                alert('มีสัดส่วนนี้อยู่แล้ว');
+                return;
+            }
+            categories.push(name);
+            input.value = '';
+            saveData();
+            renderCategoryManagerList();
+        }
+
+        function deleteCategory(catName) {
+            if (confirm(`คุณต้องการลบสัดส่วน "${catName}" ใช่หรือไม่?`)) {
+                categories = categories.filter(c => c !== catName);
+                if (currentFilter === catName) currentFilter = 'ทั้งหมด';
+                saveData();
+                renderCategoryManagerList();
+            }
+        }
+
+        function renderCategoryManagerList() {
+            const list = document.getElementById('categoryManagerList');
+            if (categories.length === 0) {
+                list.innerHTML = `<p class="text-xs text-slate-400 italic py-2 text-center">ยังไม่มีสัดส่วน เพิ่มด้านบนได้เลย</p>`;
+                return;
+            }
+            list.innerHTML = categories.map(cat => `
+                <div class="flex items-center justify-between p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                    <span class="font-medium text-slate-700">🏷️ ${cat}</span>
+                    <button onclick="deleteCategory('${cat}')" class="text-rose-500 hover:bg-rose-50 px-2 py-1 rounded text-xs">
+                        ลบ
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        // --- ฟังก์ชันจัดการวิชาและลิงก์ ---
         function addSubject() {
             const input = document.getElementById('newSubjectInput');
-            const categorySelect = document.getElementById('newSubjectCategory');
+            const catSelect = document.getElementById('newSubjectCategory');
             const name = input.value.trim();
-            const category = categorySelect.value;
+            const category = catSelect.value || 'ทั่วไป';
 
             if (!name) {
-                alert('กรุณาพิมพ์ชื่อวิชา');
+                alert('กรุณากรอกชื่อวิชา');
                 return;
             }
 
@@ -205,16 +292,25 @@
         }
 
         function setFilter(cat) {
-            currentCategory = cat;
+            currentFilter = cat;
             render();
         }
 
-        function renderFilterBar() {
-            const categories = ['ทั้งหมด', 'เทอม 1', 'เทอม 2', 'วิทย์ - คณิต', 'ภาษา', 'สังคม / ทั่วไป', 'อื่นๆ'];
-            const bar = document.getElementById('categoryFilterBar');
-            
-            bar.innerHTML = categories.map(cat => {
-                const isActive = currentCategory === cat;
+        // --- ฟังก์ชัน Render หน้าจอทั้งหมด ---
+        function render() {
+            // 1. Render Dropdown เลือกสัดส่วนในฟอร์มเพิ่มวิชา
+            const catSelect = document.getElementById('newSubjectCategory');
+            if (categories.length === 0) {
+                catSelect.innerHTML = `<option value="ทั่วไป">📌 ทั่วไป</option>`;
+            } else {
+                catSelect.innerHTML = categories.map(cat => `<option value="${cat}">📌 ${cat}</option>`).join('');
+            }
+
+            // 2. Render แถบปุ่มกรองด้านบน
+            const filterBar = document.getElementById('categoryFilterBar');
+            const allFilters = ['ทั้งหมด', ...categories];
+            filterBar.innerHTML = allFilters.map(cat => {
+                const isActive = currentFilter === cat;
                 return `
                     <button onclick="setFilter('${cat}')" 
                             class="px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition ${
@@ -226,23 +322,19 @@
                     </button>
                 `;
             }).join('');
-        }
 
-        function render() {
-            renderFilterBar();
+            // 3. Render การ์ดวิชา
             const container = document.getElementById('subjectList');
-
-            // กรองตามหมวดหมู่ที่เลือก
-            const filteredSubjects = currentCategory === 'ทั้งหมด' 
+            const filteredSubjects = currentFilter === 'ทั้งหมด' 
                 ? subjects 
-                : subjects.filter(s => s.category === currentCategory);
+                : subjects.filter(s => s.category === currentFilter);
 
             if (filteredSubjects.length === 0) {
                 container.innerHTML = `
                     <div class="text-center py-12 bg-white rounded-2xl border border-dashed border-slate-300 p-8">
                         <p class="text-3xl mb-2">📂</p>
                         <p class="text-slate-500 font-medium">ยังไม่มีรายวิชาในสัดส่วนนี้</p>
-                        <p class="text-xs text-slate-400 mt-1">สามารถเลือกหมวดหมู่และเพิ่มวิชาใหม่ได้ที่แถบด้านบน</p>
+                        <p class="text-xs text-slate-400 mt-1">สามารถเลือกสัดส่วนและเพิ่มวิชาใหม่ได้ที่แถบด้านบน</p>
                     </div>
                 `;
                 return;
@@ -270,10 +362,10 @@
                         </div>
                     </div>
                     
-                    <!-- ส่วนแบ่งสัดส่วนเนื้อหา (2 คอลัมน์) -->
+                    <!-- ส่วนแสดงลิงก์แบ่ง 2 ฝั่ง -->
                     <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                         
-                        <!-- สัดส่วนที่ 1: สรุปเนื้อหา -->
+                        <!-- สรุปเนื้อหา -->
                         <div class="space-y-2 bg-emerald-50/40 p-3 rounded-xl border border-emerald-100/70">
                             <div class="flex items-center justify-between text-xs font-bold text-emerald-700 uppercase">
                                 <span>📝 สรุปเนื้อหา / เลกเชอร์</span>
@@ -291,7 +383,7 @@
                             </div>
                         </div>
 
-                        <!-- สัดส่วนที่ 2: ข้อสอบ & แบบฝึกหัด -->
+                        <!-- ข้อสอบ & แบบฝึกหัด -->
                         <div class="space-y-2 bg-amber-50/40 p-3 rounded-xl border border-amber-100/70">
                             <div class="flex items-center justify-between text-xs font-bold text-amber-700 uppercase">
                                 <span>🎯 ข้อสอบ / แนวข้อสอบ</span>
@@ -314,6 +406,7 @@
             `).join('');
         }
 
+        // เริ่มทำงานครั้งแรก
         render();
     </script>
 </body>
