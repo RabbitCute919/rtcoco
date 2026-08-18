@@ -7,8 +7,22 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- SortableJS สำหรับลากวางด้วยนิ้วบน iPad/มือถือ -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
         body { font-family: 'Prompt', sans-serif; }
+        .sortable-ghost {
+            opacity: 0.3;
+            background-color: #e0e7ff !important;
+            border: 2px dashed #6366f1 !important;
+        }
+        .drag-handle {
+            touch-action: none;
+            cursor: grab;
+        }
+        .drag-handle:active {
+            cursor: grabbing;
+        }
     </style>
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen p-3 md:p-8">
@@ -21,7 +35,7 @@
                 <span class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span> กำลังซิงก์กับ Google Drive...
             </div>
             <h1 class="text-2xl md:text-4xl font-bold text-indigo-700">📚 คลังรวมสรุป & ข้อสอบ</h1>
-            <p class="text-slate-500 text-xs md:text-sm mt-1">ข้อมูลถูกบันทึกอัตโนมัติลงใน Google Drive ของคุณ</p>
+            <p class="text-slate-500 text-xs md:text-sm mt-1">แตะลากเพื่อจัดลำดับได้สะดวกรวดเร็ว</p>
         </header>
 
         <!-- ฟอร์มเพิ่มวิชาใหม่ -->
@@ -53,14 +67,14 @@
         <div class="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none" id="categoryFilterBar">
         </div>
 
-        <!-- รายการวิชา -->
+        <!-- รายการวิชา (รองรับ Drag & Drop) -->
         <div id="subjectList" class="space-y-4">
             <div class="text-center py-12 text-slate-400">กำลังดาวน์โหลดข้อมูลจาก Google Drive...</div>
         </div>
 
     </div>
 
-    <!-- Modal 1: จัดการสัดส่วน -->
+    <!-- Modal 1: จัดการสัดส่วน (Drag & Drop) -->
     <div id="categoryModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
         <div class="bg-white p-5 md:p-6 rounded-2xl max-w-md w-full shadow-xl space-y-4">
             <div class="flex justify-between items-center border-b border-slate-100 pb-3">
@@ -76,7 +90,9 @@
                 </button>
             </div>
 
-            <p class="text-[11px] text-slate-400">💡 กดปุ่ม ⬆️ ⬇️ เพื่อเลื่อนสลับลำดับการแสดงผล</p>
+            <p class="text-[11px] text-slate-400 flex items-center gap-1">
+                <span>✋</span> แตะค้างที่แถบ <b>☰</b> แล้วลากเพื่อสลับลำดับได้ทันที
+            </p>
 
             <div class="space-y-1.5 max-h-64 overflow-y-auto pr-1" id="categoryManagerList">
             </div>
@@ -126,10 +142,7 @@
     </div>
 
     <script>
-        // -------------------------------------------------------------------------
-        // ⚠️ วาง URL Web App ของคุณจาก Google Apps Script ตรงนี้
-        // -------------------------------------------------------------------------
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyY7M6fdlwe0ed5ULzGasGz55jFfohm9JhtA08lf4ZlygUoV61czcMuTWAcmm6fbATO/exec";
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwy1rtdjBPR0h-F-nOpeINTzhtkhTKvXUFzPKM3JpSzDqrWHX-ZVaY83vlO9sfNCJ7y/exec";
 
         let categories = ['สรีรวิทยา', 'พยาธิวิทยา', 'เทคโนโลยี', 'ชีวะรังสีเทคนิค', 'ฟิสิกส์รังสี'];
         let subjects = [];
@@ -149,17 +162,7 @@
             }
         }
 
-        // โหลดข้อมูลจาก Google Sheets เมื่อเปิดเว็บ
         async function loadDataFromGoogleDrive() {
-            if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL.includes("YOUR_GOOGLE_APPS_SCRIPT_URL_HERE")) {
-                updateSyncStatus('error', 'กรุณาใส่ URL ของ Google Apps Script ในโค้ด');
-                // ใช้ข้อมูลจาก LocalStorage สำรอง
-                categories = JSON.parse(localStorage.getItem('study_vault_categories')) || categories;
-                subjects = JSON.parse(localStorage.getItem('study_vault_v4')) || [];
-                render();
-                return;
-            }
-
             try {
                 updateSyncStatus('syncing', 'กำลังโหลดข้อมูลจาก Google Drive...');
                 const res = await fetch(GOOGLE_SCRIPT_URL);
@@ -173,19 +176,15 @@
             } catch (err) {
                 console.error(err);
                 updateSyncStatus('error', 'โหลดข้อมูลล้มเหลว (ใช้ออฟไลน์)');
+                categories = JSON.parse(localStorage.getItem('study_vault_categories')) || categories;
+                subjects = JSON.parse(localStorage.getItem('study_vault_v4')) || [];
                 render();
             }
         }
 
-        // บันทึกข้อมูลกลับไปยัง Google Sheets
         async function saveData() {
-            render(); // อัปเดตหน้าจอก่อนทันที
-            
-            // สำรองลง LocalStorage ในเครื่องด้วย
             localStorage.setItem('study_vault_categories', JSON.stringify(categories));
             localStorage.setItem('study_vault_v4', JSON.stringify(subjects));
-
-            if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL.includes("YOUR_GOOGLE_APPS_SCRIPT_URL_HERE")) return;
 
             try {
                 updateSyncStatus('syncing', 'กำลังบันทึกลง Google Drive...');
@@ -202,7 +201,7 @@
             }
         }
 
-        // --- ฟังก์ชันจัดการสัดส่วน & ลำดับสัดส่วน ---
+        // --- จัดการสัดส่วน ---
         function openCategoryModal() {
             document.getElementById('customCategoryInput').value = '';
             renderCategoryManagerList();
@@ -213,6 +212,7 @@
         function closeCategoryModal() {
             document.getElementById('categoryModal').classList.add('hidden');
             document.getElementById('categoryModal').classList.remove('flex');
+            render();
         }
 
         function addNewCategory() {
@@ -238,18 +238,6 @@
             }
         }
 
-        function moveCategory(index, direction) {
-            const targetIndex = index + direction;
-            if (targetIndex < 0 || targetIndex >= categories.length) return;
-            
-            const temp = categories[index];
-            categories[index] = categories[targetIndex];
-            categories[targetIndex] = temp;
-            
-            saveData();
-            renderCategoryManagerList();
-        }
-
         function renderCategoryManagerList() {
             const list = document.getElementById('categoryManagerList');
             if (categories.length === 0) {
@@ -257,45 +245,29 @@
                 return;
             }
             list.innerHTML = categories.map((cat, idx) => `
-                <div class="flex items-center justify-between p-2 bg-slate-50 border border-slate-200 rounded-xl text-sm">
-                    <span class="font-medium text-slate-700 truncate flex-1">🏷️ ${cat}</span>
-                    <div class="flex items-center gap-1">
-                        <button onclick="moveCategory(${idx}, -1)" ${idx === 0 ? 'disabled class="opacity-20 px-1"' : 'class="hover:bg-slate-200 px-1 rounded text-xs"'}>⬆️</button>
-                        <button onclick="moveCategory(${idx}, 1)" ${idx === categories.length - 1 ? 'disabled class="opacity-20 px-1"' : 'class="hover:bg-slate-200 px-1 rounded text-xs"'}>⬇️</button>
-                        <button onclick="deleteCategory('${cat}')" class="text-rose-500 hover:bg-rose-50 px-2 py-1 rounded text-xs ml-1 font-medium">ลบ</button>
+                <div data-id="${cat}" class="flex items-center justify-between p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm transition">
+                    <div class="flex items-center gap-2 truncate flex-1">
+                        <span class="drag-handle text-slate-400 hover:text-indigo-600 px-1 py-0.5 select-none text-base">☰</span>
+                        <span class="font-medium text-slate-700 truncate">🏷️ ${cat}</span>
                     </div>
+                    <button onclick="deleteCategory('${cat}')" class="text-rose-500 hover:bg-rose-50 px-2 py-1 rounded text-xs font-medium">ลบ</button>
                 </div>
             `).join('');
+
+            // ผูก SortableJS ให้ลากสลับหมวดหมู่ได้
+            new Sortable(list, {
+                handle: '.drag-handle',
+                animation: 200,
+                ghostClass: 'sortable-ghost',
+                onEnd: function () {
+                    const newOrder = Array.from(list.children).map(item => item.getAttribute('data-id'));
+                    categories = newOrder.filter(Boolean);
+                    saveData();
+                }
+            });
         }
 
-        // --- ฟังก์ชันจัดลำดับวิชา & ลิงก์ ---
-        function moveSubject(subjectId, direction) {
-            const index = subjects.findIndex(s => s.id === subjectId);
-            const targetIndex = index + direction;
-            if (targetIndex < 0 || targetIndex >= subjects.length) return;
-            
-            const temp = subjects[index];
-            subjects[index] = subjects[targetIndex];
-            subjects[targetIndex] = temp;
-            
-            saveData();
-        }
-
-        function moveLink(subjectId, type, linkIndex, direction) {
-            const subject = subjects.find(s => s.id === subjectId);
-            if (!subject) return;
-
-            const list = type === 'summary' ? subject.summaries : subject.exams;
-            const targetIndex = linkIndex + direction;
-            if (targetIndex < 0 || targetIndex >= list.length) return;
-
-            const temp = list[linkIndex];
-            list[linkIndex] = list[targetIndex];
-            list[targetIndex] = temp;
-
-            saveData();
-        }
-
+        // --- เพิ่ม/ลบวิชาและลิงก์ ---
         function addSubject() {
             const input = document.getElementById('newSubjectInput');
             const catSelect = document.getElementById('newSubjectCategory');
@@ -308,7 +280,7 @@
             }
 
             subjects.unshift({
-                id: Date.now().toString(),
+                id: "sub_" + Date.now().toString(),
                 category: category,
                 name: name,
                 summaries: [],
@@ -317,12 +289,14 @@
 
             input.value = '';
             saveData();
+            render();
         }
 
         function deleteSubject(id) {
             if (confirm('คุณต้องการลบวิชานี้และข้อมูลลิงก์ทั้งหมดใช่หรือไม่?')) {
                 subjects = subjects.filter(s => s.id !== id);
                 saveData();
+                render();
             }
         }
 
@@ -365,6 +339,7 @@
                     subject.exams.push({ title, url });
                 }
                 saveData();
+                render();
                 closeModal();
             }
         }
@@ -375,6 +350,7 @@
                 if (type === 'summary') subject.summaries.splice(index, 1);
                 if (type === 'exam') subject.exams.splice(index, 1);
                 saveData();
+                render();
             }
         }
 
@@ -383,7 +359,7 @@
             render();
         }
 
-        // --- Render หน้าจอ ---
+        // --- Render หน้าจอ & ผูกระบบ Drag & Drop ---
         function render() {
             const catSelect = document.getElementById('newSubjectCategory');
             if (categories.length === 0) {
@@ -424,20 +400,18 @@
             }
 
             container.innerHTML = filteredSubjects.map((sub) => `
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden transition hover:shadow-md">
+                <div data-id="${sub.id}" class="subject-card bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden transition hover:shadow-md">
                     <div class="p-3 md:p-4 bg-slate-50/80 border-b border-slate-200 flex flex-wrap justify-between items-center gap-2">
                         <div class="flex items-center gap-2">
+                            <span class="subject-handle drag-handle text-slate-400 hover:text-indigo-600 px-1 py-0.5 select-none text-lg">☰</span>
                             <span class="text-xs font-semibold px-2.5 py-1 rounded-lg bg-indigo-100 text-indigo-700">
                                 ${sub.category || 'ทั่วไป'}
                             </span>
                             <h2 class="font-bold text-sm md:text-base text-slate-800">${sub.name}</h2>
                         </div>
                         <div class="flex items-center gap-1.5">
-                            <button onclick="moveSubject('${sub.id}', -1)" title="เลื่อนวิชาขึ้น" class="p-1 text-slate-500 hover:bg-slate-200 rounded text-xs">⬆️</button>
-                            <button onclick="moveSubject('${sub.id}', 1)" title="เลื่อนวิชาลง" class="p-1 text-slate-500 hover:bg-slate-200 rounded text-xs">⬇️</button>
-                            
                             <button onclick="openAddLinkModal('${sub.id}')" 
-                                    class="text-xs bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-2.5 py-1.5 rounded-lg flex items-center gap-1 transition ml-1">
+                                    class="text-xs bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-2.5 py-1.5 rounded-lg flex items-center gap-1 transition">
                                 <span>+</span> เพิ่มลิงก์
                             </button>
                             <button onclick="deleteSubject('${sub.id}')" 
@@ -448,43 +422,39 @@
                     </div>
                     
                     <div class="p-3 md:p-4 grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                        <!-- สรุป -->
                         <div class="space-y-2 bg-emerald-50/40 p-3 rounded-xl border border-emerald-100/70">
                             <div class="flex items-center justify-between text-xs font-bold text-emerald-700 uppercase">
                                 <span>📝 สรุปเนื้อหา / เลกเชอร์</span>
                                 <span class="bg-emerald-200/60 px-1.5 py-0.5 rounded text-[10px]">${(sub.summaries || []).length} ลิงก์</span>
                             </div>
-                            <div class="space-y-1.5">
+                            <div id="summaries_${sub.id}" class="space-y-1.5">
                                 ${(sub.summaries && sub.summaries.length) ? sub.summaries.map((item, idx) => `
-                                    <div class="flex items-center justify-between p-2 rounded-lg bg-white hover:bg-emerald-50 border border-emerald-100 transition shadow-2xs gap-1">
+                                    <div data-index="${idx}" class="flex items-center justify-between p-2 rounded-lg bg-white hover:bg-emerald-50 border border-emerald-100 transition shadow-2xs gap-1">
+                                        <span class="link-handle drag-handle text-slate-300 hover:text-emerald-600 px-1 select-none text-xs">☰</span>
                                         <a href="${item.url}" target="_blank" class="text-xs md:text-sm text-slate-700 hover:text-emerald-700 truncate flex-1 font-medium">
                                             📄 ${item.title}
                                         </a>
-                                        <div class="flex items-center gap-0.5">
-                                            <button onclick="moveLink('${sub.id}', 'summary', ${idx}, -1)" class="text-[10px] text-slate-400 hover:text-indigo-600 p-0.5">↑</button>
-                                            <button onclick="moveLink('${sub.id}', 'summary', ${idx}, 1)" class="text-[10px] text-slate-400 hover:text-indigo-600 p-0.5">↓</button>
-                                            <button onclick="deleteLink('${sub.id}', 'summary', ${idx})" class="text-slate-300 hover:text-rose-500 ml-1 text-xs">✕</button>
-                                        </div>
+                                        <button onclick="deleteLink('${sub.id}', 'summary', ${idx})" class="text-slate-300 hover:text-rose-500 ml-1 text-xs">✕</button>
                                     </div>
                                 `).join('') : '<p class="text-xs text-slate-400 italic py-1">ยังไม่มีลิงก์สรุป</p>'}
                             </div>
                         </div>
 
+                        <!-- ข้อสอบ -->
                         <div class="space-y-2 bg-amber-50/40 p-3 rounded-xl border border-amber-100/70">
                             <div class="flex items-center justify-between text-xs font-bold text-amber-700 uppercase">
                                 <span>🎯 ข้อสอบ / แนวข้อสอบ</span>
                                 <span class="bg-amber-200/60 px-1.5 py-0.5 rounded text-[10px]">${(sub.exams || []).length} ลิงก์</span>
                             </div>
-                            <div class="space-y-1.5">
+                            <div id="exams_${sub.id}" class="space-y-1.5">
                                 ${(sub.exams && sub.exams.length) ? sub.exams.map((item, idx) => `
-                                    <div class="flex items-center justify-between p-2 rounded-lg bg-white hover:bg-amber-50 border border-amber-100 transition shadow-2xs gap-1">
+                                    <div data-index="${idx}" class="flex items-center justify-between p-2 rounded-lg bg-white hover:bg-amber-50 border border-amber-100 transition shadow-2xs gap-1">
+                                        <span class="link-handle drag-handle text-slate-300 hover:text-amber-600 px-1 select-none text-xs">☰</span>
                                         <a href="${item.url}" target="_blank" class="text-xs md:text-sm text-slate-700 hover:text-amber-800 truncate flex-1 font-medium">
                                             ✏️ ${item.title}
                                         </a>
-                                        <div class="flex items-center gap-0.5">
-                                            <button onclick="moveLink('${sub.id}', 'exam', ${idx}, -1)" class="text-[10px] text-slate-400 hover:text-indigo-600 p-0.5">↑</button>
-                                            <button onclick="moveLink('${sub.id}', 'exam', ${idx}, 1)" class="text-[10px] text-slate-400 hover:text-indigo-600 p-0.5">↓</button>
-                                            <button onclick="deleteLink('${sub.id}', 'exam', ${idx})" class="text-slate-300 hover:text-rose-500 ml-1 text-xs">✕</button>
-                                        </div>
+                                        <button onclick="deleteLink('${sub.id}', 'exam', ${idx})" class="text-slate-300 hover:text-rose-500 ml-1 text-xs">✕</button>
                                     </div>
                                 `).join('') : '<p class="text-xs text-slate-400 italic py-1">ยังไม่มีลิงก์ข้อสอบ</p>'}
                             </div>
@@ -492,9 +462,53 @@
                     </div>
                 </div>
             `).join('');
+
+            // ผูก Sortable ให้รายการวิชา
+            new Sortable(container, {
+                handle: '.subject-handle',
+                animation: 200,
+                ghostClass: 'sortable-ghost',
+                onEnd: function () {
+                    const orderedIds = Array.from(container.children).map(c => c.getAttribute('data-id'));
+                    if (currentFilter === 'ทั้งหมด') {
+                        subjects.sort((a, b) => orderedIds.indexOf(a.id) - orderedIds.indexOf(b.id));
+                    }
+                    saveData();
+                }
+            });
+
+            // ผูก Sortable ให้ทุกลิงก์สรุปและข้อสอบ
+            filteredSubjects.forEach(sub => {
+                const sumContainer = document.getElementById(`summaries_${sub.id}`);
+                if (sumContainer) {
+                    new Sortable(sumContainer, {
+                        handle: '.link-handle',
+                        animation: 150,
+                        ghostClass: 'sortable-ghost',
+                        onEnd: function () {
+                            const newIndices = Array.from(sumContainer.children).map(c => parseInt(c.getAttribute('data-index')));
+                            sub.summaries = newIndices.map(i => sub.summaries[i]).filter(Boolean);
+                            saveData();
+                        }
+                    });
+                }
+
+                const examContainer = document.getElementById(`exams_${sub.id}`);
+                if (examContainer) {
+                    new Sortable(examContainer, {
+                        handle: '.link-handle',
+                        animation: 150,
+                        ghostClass: 'sortable-ghost',
+                        onEnd: function () {
+                            const newIndices = Array.from(examContainer.children).map(c => parseInt(c.getAttribute('data-index')));
+                            sub.exams = newIndices.map(i => sub.exams[i]).filter(Boolean);
+                            saveData();
+                        }
+                    });
+                }
+            });
         }
 
-        // เริ่มโหลดข้อมูลจาก Google Drive ทันทีเมื่อเปิดเว็บ
         loadDataFromGoogleDrive();
     </script>
 </body>
