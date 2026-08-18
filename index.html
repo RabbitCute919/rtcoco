@@ -11,36 +11,35 @@
         body { font-family: 'Prompt', sans-serif; }
     </style>
 </head>
-<body class="bg-slate-100 text-slate-800 min-h-screen p-4 md:p-8">
+<body class="bg-slate-100 text-slate-800 min-h-screen p-3 md:p-8">
 
     <div class="max-w-5xl mx-auto space-y-6">
         
         <!-- Header -->
-        <header class="text-center py-4">
-            <h1 class="text-3xl md:text-4xl font-bold text-indigo-700">📚 คลังรวมสรุป & ข้อสอบ</h1>
-            <p class="text-slate-500 mt-1">จัดระเบียบลิงก์ทบทวนบทเรียน แยกสัดส่วนและรายวิชาได้ตามต้องการ</p>
+        <header class="text-center py-2 md:py-4">
+            <div id="syncStatus" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-200 text-slate-700 text-xs font-semibold mb-2">
+                <span class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span> กำลังซิงก์กับ Google Drive...
+            </div>
+            <h1 class="text-2xl md:text-4xl font-bold text-indigo-700">📚 คลังรวมสรุป & ข้อสอบ</h1>
+            <p class="text-slate-500 text-xs md:text-sm mt-1">ข้อมูลถูกบันทึกอัตโนมัติลงใน Google Drive ของคุณ</p>
         </header>
 
-        <!-- ฟอร์มเพิ่มวิชาใหม่ พร้อมเลือกสัดส่วน -->
-        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-3">
+        <!-- ฟอร์มเพิ่มวิชาใหม่ -->
+        <div class="bg-white p-4 md:p-5 rounded-2xl shadow-sm border border-slate-200 space-y-3">
             <div class="flex justify-between items-center">
                 <h2 class="text-sm font-semibold text-slate-700 flex items-center gap-1.5">
                     <span>➕</span> เพิ่มวิชาใหม่เข้าคลัง
                 </h2>
-                <!-- ปุ่มเปิดหน้าต่างจัดการสัดส่วน -->
                 <button onclick="openCategoryModal()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium px-3 py-1.5 rounded-lg flex items-center gap-1 transition">
-                    ⚙️ จัดการสัดส่วน
+                    ⚙️ จัดการ/จัดลำดับสัดส่วน
                 </button>
             </div>
             
             <div class="flex flex-col md:flex-row gap-2">
-                <!-- Dropdown เลือกสัดส่วน -->
-                <select id="newSubjectCategory" class="px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 text-sm font-medium md:w-48">
-                    <!-- รายการสัดส่วนจะถูกเติมด้วย JavaScript -->
+                <select id="newSubjectCategory" class="px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 text-sm font-medium md:w-52">
                 </select>
 
-                <!-- ชื่อวิชา -->
-                <input id="newSubjectInput" type="text" placeholder="พิมพ์ชื่อวิชา เช่น ชีววิทยา บทที่ 1-3, แคลคูลัส..." 
+                <input id="newSubjectInput" type="text" placeholder="พิมพ์ชื่อวิชา..." 
                        class="flex-1 px-4 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
                 
                 <button onclick="addSubject()" 
@@ -51,37 +50,35 @@
         </div>
 
         <!-- แถบกรองสัดส่วน (Filter Tabs) -->
-        <div class="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none" id="categoryFilterBar">
-            <!-- สร้างปุ่มหมวดหมู่ด้วย JS -->
+        <div class="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none" id="categoryFilterBar">
         </div>
 
-        <!-- พื้นที่แสดงรายวิชาทั้งหมด -->
+        <!-- รายการวิชา -->
         <div id="subjectList" class="space-y-4">
-            <!-- Render รายการวิชา -->
+            <div class="text-center py-12 text-slate-400">กำลังดาวน์โหลดข้อมูลจาก Google Drive...</div>
         </div>
 
     </div>
 
-    <!-- Modal 1: สำหรับจัดการ/เพิ่ม/ลบ สัดส่วน -->
+    <!-- Modal 1: จัดการสัดส่วน -->
     <div id="categoryModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
-        <div class="bg-white p-6 rounded-2xl max-w-md w-full shadow-xl space-y-4">
+        <div class="bg-white p-5 md:p-6 rounded-2xl max-w-md w-full shadow-xl space-y-4">
             <div class="flex justify-between items-center border-b border-slate-100 pb-3">
-                <h3 class="text-base font-bold text-slate-800">⚙️ จัดการสัดส่วน / หมวดหมู่</h3>
+                <h3 class="text-base font-bold text-slate-800">⚙️ จัดการ & จัดลำดับสัดส่วน</h3>
                 <button onclick="closeCategoryModal()" class="text-slate-400 hover:text-slate-600 text-lg">✕</button>
             </div>
             
-            <!-- ฟอร์มพิมพ์เพิ่มสัดส่วนใหม่ -->
             <div class="flex gap-2">
-                <input id="customCategoryInput" type="text" placeholder="ชื่อสัดส่วนใหม่ เช่น ม.4 เทอม 1..." 
+                <input id="customCategoryInput" type="text" placeholder="ชื่อสัดส่วนใหม่..." 
                        class="flex-1 px-3 py-2 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 <button onclick="addNewCategory()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition">
                     เพิ่ม
                 </button>
             </div>
 
-            <!-- รายการสัดส่วนที่มีอยู่เดิม พร้อมปุ่มลบ -->
-            <div class="space-y-1.5 max-h-60 overflow-y-auto pr-1" id="categoryManagerList">
-                <!-- รายการสัดส่วนจะแสดงที่นี่ -->
+            <p class="text-[11px] text-slate-400">💡 กดปุ่ม ⬆️ ⬇️ เพื่อเลื่อนสลับลำดับการแสดงผล</p>
+
+            <div class="space-y-1.5 max-h-64 overflow-y-auto pr-1" id="categoryManagerList">
             </div>
 
             <div class="flex justify-end pt-2">
@@ -92,7 +89,7 @@
         </div>
     </div>
 
-    <!-- Modal 2: สำหรับเพิ่มลิงก์สรุปและข้อสอบ -->
+    <!-- Modal 2: เพิ่มลิงก์ -->
     <div id="linkModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
         <div class="bg-white p-6 rounded-2xl max-w-md w-full shadow-xl space-y-4">
             <div class="flex justify-between items-center border-b border-slate-100 pb-3">
@@ -110,8 +107,8 @@
             </div>
 
             <div>
-                <label class="block text-xs font-semibold text-slate-600 mb-1">ชื่อลิงก์ / คำอธิบายสั้นๆ</label>
-                <input id="modalLinkTitle" type="text" placeholder="เช่น สรุปสูตรตรีโกณ, ตะลุยโจทย์ปลายภาค" 
+                <label class="block text-xs font-semibold text-slate-600 mb-1">ชื่อลิงก์ / คำอธิบาย</label>
+                <input id="modalLinkTitle" type="text" placeholder="เช่น สรุปบทที่ 1, ตะลุยโจทย์ปลายภาค" 
                        class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
             </div>
 
@@ -129,31 +126,83 @@
     </div>
 
     <script>
-        // รายการสัดส่วนเริ่มต้น (โหลดจากเครื่องหรือใช้ค่าเริ่มต้น)
-        let categories = JSON.parse(localStorage.getItem('study_vault_categories')) || [
-            'เทอม 1', 'เทอม 2', 'วิทย์ - คณิต', 'ภาษา', 'ทั่วไป'
-        ];
+        // -------------------------------------------------------------------------
+        // ⚠️ วาง URL Web App ของคุณจาก Google Apps Script ตรงนี้
+        // -------------------------------------------------------------------------
+        const GOOGLE_SCRIPT_URL = "YOUR_GOOGLE_APPS_SCRIPT_URL_HERE";
 
-        // รายการวิชาเริ่มต้น
-        let subjects = JSON.parse(localStorage.getItem('study_vault_v3')) || [
-            {
-                id: '1',
-                category: 'วิทย์ - คณิต',
-                name: 'คณิตศาสตร์เพิ่มเติม',
-                summaries: [{ title: 'สรุปสูตรตรีโกณมิติ', url: 'https://google.com' }],
-                exams: [{ title: 'ข้อสอบจำลองกลางภาค', url: 'https://google.com' }]
-            }
-        ];
-
+        let categories = ['สรีรวิทยา', 'พยาธิวิทยา', 'เทคโนโลยี', 'ชีวะรังสีเทคนิค', 'ฟิสิกส์รังสี'];
+        let subjects = [];
         let currentFilter = 'ทั้งหมด';
 
-        function saveData() {
-            localStorage.setItem('study_vault_v3', JSON.stringify(subjects));
-            localStorage.setItem('study_vault_categories', JSON.stringify(categories));
-            render();
+        function updateSyncStatus(status, text) {
+            const el = document.getElementById('syncStatus');
+            if (status === 'syncing') {
+                el.className = "inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-700 text-xs font-semibold mb-2";
+                el.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span> ${text}`;
+            } else if (status === 'success') {
+                el.className = "inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-semibold mb-2";
+                el.innerHTML = `🟢 ${text}`;
+            } else {
+                el.className = "inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-100 text-rose-700 text-xs font-semibold mb-2";
+                el.innerHTML = `🔴 ${text}`;
+            }
         }
 
-        // --- ฟังก์ชันจัดการสัดส่วน ---
+        // โหลดข้อมูลจาก Google Sheets เมื่อเปิดเว็บ
+        async function loadDataFromGoogleDrive() {
+            if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL.includes("YOUR_GOOGLE_APPS_SCRIPT_URL_HERE")) {
+                updateSyncStatus('error', 'กรุณาใส่ URL ของ Google Apps Script ในโค้ด');
+                // ใช้ข้อมูลจาก LocalStorage สำรอง
+                categories = JSON.parse(localStorage.getItem('study_vault_categories')) || categories;
+                subjects = JSON.parse(localStorage.getItem('study_vault_v4')) || [];
+                render();
+                return;
+            }
+
+            try {
+                updateSyncStatus('syncing', 'กำลังโหลดข้อมูลจาก Google Drive...');
+                const res = await fetch(GOOGLE_SCRIPT_URL);
+                const data = await res.json();
+                
+                if (data.categories) categories = data.categories;
+                if (data.subjects) subjects = data.subjects;
+
+                updateSyncStatus('success', 'เชื่อมต่อกับ Google Drive สำเร็จ');
+                render();
+            } catch (err) {
+                console.error(err);
+                updateSyncStatus('error', 'โหลดข้อมูลล้มเหลว (ใช้ออฟไลน์)');
+                render();
+            }
+        }
+
+        // บันทึกข้อมูลกลับไปยัง Google Sheets
+        async function saveData() {
+            render(); // อัปเดตหน้าจอก่อนทันที
+            
+            // สำรองลง LocalStorage ในเครื่องด้วย
+            localStorage.setItem('study_vault_categories', JSON.stringify(categories));
+            localStorage.setItem('study_vault_v4', JSON.stringify(subjects));
+
+            if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL.includes("YOUR_GOOGLE_APPS_SCRIPT_URL_HERE")) return;
+
+            try {
+                updateSyncStatus('syncing', 'กำลังบันทึกลง Google Drive...');
+                await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({ categories, subjects })
+                });
+                updateSyncStatus('success', 'บันทึกลง Google Drive แล้ว');
+            } catch (err) {
+                console.error(err);
+                updateSyncStatus('error', 'เกิดข้อผิดพลาดในการบันทึก');
+            }
+        }
+
+        // --- ฟังก์ชันจัดการสัดส่วน & ลำดับสัดส่วน ---
         function openCategoryModal() {
             document.getElementById('customCategoryInput').value = '';
             renderCategoryManagerList();
@@ -169,10 +218,7 @@
         function addNewCategory() {
             const input = document.getElementById('customCategoryInput');
             const name = input.value.trim();
-            if (!name) {
-                alert('กรุณากรอกชื่อสัดส่วน');
-                return;
-            }
+            if (!name) return;
             if (categories.includes(name)) {
                 alert('มีสัดส่วนนี้อยู่แล้ว');
                 return;
@@ -184,12 +230,24 @@
         }
 
         function deleteCategory(catName) {
-            if (confirm(`คุณต้องการลบสัดส่วน "${catName}" ใช่หรือไม่?`)) {
+            if (confirm(`ต้องการลบสัดส่วน "${catName}" ใช่หรือไม่?`)) {
                 categories = categories.filter(c => c !== catName);
                 if (currentFilter === catName) currentFilter = 'ทั้งหมด';
                 saveData();
                 renderCategoryManagerList();
             }
+        }
+
+        function moveCategory(index, direction) {
+            const targetIndex = index + direction;
+            if (targetIndex < 0 || targetIndex >= categories.length) return;
+            
+            const temp = categories[index];
+            categories[index] = categories[targetIndex];
+            categories[targetIndex] = temp;
+            
+            saveData();
+            renderCategoryManagerList();
         }
 
         function renderCategoryManagerList() {
@@ -198,29 +256,58 @@
                 list.innerHTML = `<p class="text-xs text-slate-400 italic py-2 text-center">ยังไม่มีสัดส่วน เพิ่มด้านบนได้เลย</p>`;
                 return;
             }
-            list.innerHTML = categories.map(cat => `
-                <div class="flex items-center justify-between p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm">
-                    <span class="font-medium text-slate-700">🏷️ ${cat}</span>
-                    <button onclick="deleteCategory('${cat}')" class="text-rose-500 hover:bg-rose-50 px-2 py-1 rounded text-xs">
-                        ลบ
-                    </button>
+            list.innerHTML = categories.map((cat, idx) => `
+                <div class="flex items-center justify-between p-2 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                    <span class="font-medium text-slate-700 truncate flex-1">🏷️ ${cat}</span>
+                    <div class="flex items-center gap-1">
+                        <button onclick="moveCategory(${idx}, -1)" ${idx === 0 ? 'disabled class="opacity-20 px-1"' : 'class="hover:bg-slate-200 px-1 rounded text-xs"'}>⬆️</button>
+                        <button onclick="moveCategory(${idx}, 1)" ${idx === categories.length - 1 ? 'disabled class="opacity-20 px-1"' : 'class="hover:bg-slate-200 px-1 rounded text-xs"'}>⬇️</button>
+                        <button onclick="deleteCategory('${cat}')" class="text-rose-500 hover:bg-rose-50 px-2 py-1 rounded text-xs ml-1 font-medium">ลบ</button>
+                    </div>
                 </div>
             `).join('');
         }
 
-        // --- ฟังก์ชันจัดการวิชาและลิงก์ ---
+        // --- ฟังก์ชันจัดลำดับวิชา & ลิงก์ ---
+        function moveSubject(subjectId, direction) {
+            const index = subjects.findIndex(s => s.id === subjectId);
+            const targetIndex = index + direction;
+            if (targetIndex < 0 || targetIndex >= subjects.length) return;
+            
+            const temp = subjects[index];
+            subjects[index] = subjects[targetIndex];
+            subjects[targetIndex] = temp;
+            
+            saveData();
+        }
+
+        function moveLink(subjectId, type, linkIndex, direction) {
+            const subject = subjects.find(s => s.id === subjectId);
+            if (!subject) return;
+
+            const list = type === 'summary' ? subject.summaries : subject.exams;
+            const targetIndex = linkIndex + direction;
+            if (targetIndex < 0 || targetIndex >= list.length) return;
+
+            const temp = list[linkIndex];
+            list[linkIndex] = list[targetIndex];
+            list[targetIndex] = temp;
+
+            saveData();
+        }
+
         function addSubject() {
             const input = document.getElementById('newSubjectInput');
             const catSelect = document.getElementById('newSubjectCategory');
             const name = input.value.trim();
-            const category = catSelect.value || 'ทั่วไป';
+            const category = catSelect.value || (categories[0] || 'ทั่วไป');
 
             if (!name) {
                 alert('กรุณากรอกชื่อวิชา');
                 return;
             }
 
-            subjects.push({
+            subjects.unshift({
                 id: Date.now().toString(),
                 category: category,
                 name: name,
@@ -296,9 +383,8 @@
             render();
         }
 
-        // --- ฟังก์ชัน Render หน้าจอทั้งหมด ---
+        // --- Render หน้าจอ ---
         function render() {
-            // 1. Render Dropdown เลือกสัดส่วนในฟอร์มเพิ่มวิชา
             const catSelect = document.getElementById('newSubjectCategory');
             if (categories.length === 0) {
                 catSelect.innerHTML = `<option value="ทั่วไป">📌 ทั่วไป</option>`;
@@ -306,7 +392,6 @@
                 catSelect.innerHTML = categories.map(cat => `<option value="${cat}">📌 ${cat}</option>`).join('');
             }
 
-            // 2. Render แถบปุ่มกรองด้านบน
             const filterBar = document.getElementById('categoryFilterBar');
             const allFilters = ['ทั้งหมด', ...categories];
             filterBar.innerHTML = allFilters.map(cat => {
@@ -323,7 +408,6 @@
                 `;
             }).join('');
 
-            // 3. Render การ์ดวิชา
             const container = document.getElementById('subjectList');
             const filteredSubjects = currentFilter === 'ทั้งหมด' 
                 ? subjects 
@@ -334,38 +418,36 @@
                     <div class="text-center py-12 bg-white rounded-2xl border border-dashed border-slate-300 p-8">
                         <p class="text-3xl mb-2">📂</p>
                         <p class="text-slate-500 font-medium">ยังไม่มีรายวิชาในสัดส่วนนี้</p>
-                        <p class="text-xs text-slate-400 mt-1">สามารถเลือกสัดส่วนและเพิ่มวิชาใหม่ได้ที่แถบด้านบน</p>
                     </div>
                 `;
                 return;
             }
 
-            container.innerHTML = filteredSubjects.map(sub => `
+            container.innerHTML = filteredSubjects.map((sub) => `
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden transition hover:shadow-md">
-                    <!-- หัวการ์ดวิชา -->
-                    <div class="p-4 bg-slate-50/80 border-b border-slate-200 flex flex-wrap justify-between items-center gap-2">
-                        <div class="flex items-center gap-2.5">
+                    <div class="p-3 md:p-4 bg-slate-50/80 border-b border-slate-200 flex flex-wrap justify-between items-center gap-2">
+                        <div class="flex items-center gap-2">
                             <span class="text-xs font-semibold px-2.5 py-1 rounded-lg bg-indigo-100 text-indigo-700">
                                 ${sub.category || 'ทั่วไป'}
                             </span>
-                            <h2 class="font-bold text-base md:text-lg text-slate-800">${sub.name}</h2>
+                            <h2 class="font-bold text-sm md:text-base text-slate-800">${sub.name}</h2>
                         </div>
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-1.5">
+                            <button onclick="moveSubject('${sub.id}', -1)" title="เลื่อนวิชาขึ้น" class="p-1 text-slate-500 hover:bg-slate-200 rounded text-xs">⬆️</button>
+                            <button onclick="moveSubject('${sub.id}', 1)" title="เลื่อนวิชาลง" class="p-1 text-slate-500 hover:bg-slate-200 rounded text-xs">⬇️</button>
+                            
                             <button onclick="openAddLinkModal('${sub.id}')" 
-                                    class="text-xs bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-3 py-1.5 rounded-lg flex items-center gap-1 transition">
+                                    class="text-xs bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-2.5 py-1.5 rounded-lg flex items-center gap-1 transition ml-1">
                                 <span>+</span> เพิ่มลิงก์
                             </button>
                             <button onclick="deleteSubject('${sub.id}')" 
-                                    class="text-xs text-slate-400 hover:text-rose-500 hover:bg-rose-50 px-2 py-1.5 rounded-lg transition" title="ลบวิชา">
-                                🗑️ ลบ
+                                    class="text-xs text-slate-400 hover:text-rose-500 hover:bg-rose-50 p-1.5 rounded-lg transition" title="ลบวิชา">
+                                🗑️
                             </button>
                         </div>
                     </div>
                     
-                    <!-- ส่วนแสดงลิงก์แบ่ง 2 ฝั่ง -->
-                    <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                        
-                        <!-- สรุปเนื้อหา -->
+                    <div class="p-3 md:p-4 grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                         <div class="space-y-2 bg-emerald-50/40 p-3 rounded-xl border border-emerald-100/70">
                             <div class="flex items-center justify-between text-xs font-bold text-emerald-700 uppercase">
                                 <span>📝 สรุปเนื้อหา / เลกเชอร์</span>
@@ -373,17 +455,20 @@
                             </div>
                             <div class="space-y-1.5">
                                 ${(sub.summaries && sub.summaries.length) ? sub.summaries.map((item, idx) => `
-                                    <div class="flex items-center justify-between p-2 rounded-lg bg-white hover:bg-emerald-50 border border-emerald-100 transition shadow-2xs">
+                                    <div class="flex items-center justify-between p-2 rounded-lg bg-white hover:bg-emerald-50 border border-emerald-100 transition shadow-2xs gap-1">
                                         <a href="${item.url}" target="_blank" class="text-xs md:text-sm text-slate-700 hover:text-emerald-700 truncate flex-1 font-medium">
                                             📄 ${item.title}
                                         </a>
-                                        <button onclick="deleteLink('${sub.id}', 'summary', ${idx})" class="text-slate-300 hover:text-rose-500 ml-2 text-xs">✕</button>
+                                        <div class="flex items-center gap-0.5">
+                                            <button onclick="moveLink('${sub.id}', 'summary', ${idx}, -1)" class="text-[10px] text-slate-400 hover:text-indigo-600 p-0.5">↑</button>
+                                            <button onclick="moveLink('${sub.id}', 'summary', ${idx}, 1)" class="text-[10px] text-slate-400 hover:text-indigo-600 p-0.5">↓</button>
+                                            <button onclick="deleteLink('${sub.id}', 'summary', ${idx})" class="text-slate-300 hover:text-rose-500 ml-1 text-xs">✕</button>
+                                        </div>
                                     </div>
                                 `).join('') : '<p class="text-xs text-slate-400 italic py-1">ยังไม่มีลิงก์สรุป</p>'}
                             </div>
                         </div>
 
-                        <!-- ข้อสอบ & แบบฝึกหัด -->
                         <div class="space-y-2 bg-amber-50/40 p-3 rounded-xl border border-amber-100/70">
                             <div class="flex items-center justify-between text-xs font-bold text-amber-700 uppercase">
                                 <span>🎯 ข้อสอบ / แนวข้อสอบ</span>
@@ -391,23 +476,26 @@
                             </div>
                             <div class="space-y-1.5">
                                 ${(sub.exams && sub.exams.length) ? sub.exams.map((item, idx) => `
-                                    <div class="flex items-center justify-between p-2 rounded-lg bg-white hover:bg-amber-50 border border-amber-100 transition shadow-2xs">
+                                    <div class="flex items-center justify-between p-2 rounded-lg bg-white hover:bg-amber-50 border border-amber-100 transition shadow-2xs gap-1">
                                         <a href="${item.url}" target="_blank" class="text-xs md:text-sm text-slate-700 hover:text-amber-800 truncate flex-1 font-medium">
                                             ✏️ ${item.title}
                                         </a>
-                                        <button onclick="deleteLink('${sub.id}', 'exam', ${idx})" class="text-slate-300 hover:text-rose-500 ml-2 text-xs">✕</button>
+                                        <div class="flex items-center gap-0.5">
+                                            <button onclick="moveLink('${sub.id}', 'exam', ${idx}, -1)" class="text-[10px] text-slate-400 hover:text-indigo-600 p-0.5">↑</button>
+                                            <button onclick="moveLink('${sub.id}', 'exam', ${idx}, 1)" class="text-[10px] text-slate-400 hover:text-indigo-600 p-0.5">↓</button>
+                                            <button onclick="deleteLink('${sub.id}', 'exam', ${idx})" class="text-slate-300 hover:text-rose-500 ml-1 text-xs">✕</button>
+                                        </div>
                                     </div>
                                 `).join('') : '<p class="text-xs text-slate-400 italic py-1">ยังไม่มีลิงก์ข้อสอบ</p>'}
                             </div>
                         </div>
-
                     </div>
                 </div>
             `).join('');
         }
 
-        // เริ่มทำงานครั้งแรก
-        render();
+        // เริ่มโหลดข้อมูลจาก Google Drive ทันทีเมื่อเปิดเว็บ
+        loadDataFromGoogleDrive();
     </script>
 </body>
 </html>
