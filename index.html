@@ -35,7 +35,7 @@
                 <span class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span> กำลังซิงก์กับ Google Drive...
             </div>
             <h1 class="text-2xl md:text-4xl font-bold text-indigo-700">📚 คลังรวมสรุป & ข้อสอบ</h1>
-            <p class="text-slate-500 text-xs md:text-sm mt-1">แตะลากเพื่อจัดลำดับได้สะดวกรวดเร็ว</p>
+            <p class="text-slate-500 text-xs md:text-sm mt-1">แตะลากเพื่อจัดลำดับ แก้ไขชื่อและสัดส่วนได้ตลอดเวลา</p>
         </header>
 
         <!-- ฟอร์มเพิ่มวิชาใหม่ -->
@@ -137,6 +137,34 @@
             <div class="flex justify-end gap-2 pt-2">
                 <button onclick="closeModal()" class="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-xl">ยกเลิก</button>
                 <button onclick="saveLink()" class="px-5 py-2 text-sm bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 font-medium shadow-sm">บันทึก</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 3: แก้ไขชื่อวิชา และสัดส่วน (Edit Subject Modal) -->
+    <div id="editSubjectModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-white p-6 rounded-2xl max-w-md w-full shadow-xl space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                <h3 class="text-base font-bold text-slate-800">✏️ แก้ไขชื่อวิชา & สัดส่วน</h3>
+                <button onclick="closeEditSubjectModal()" class="text-slate-400 hover:text-slate-600 text-lg">✕</button>
+            </div>
+            <input type="hidden" id="editSubjectId">
+            
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">สัดส่วน / หมวดหมู่</label>
+                <select id="editSubjectCategory" class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm bg-slate-50">
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">ชื่อวิชา / หัวข้อ</label>
+                <input id="editSubjectName" type="text" placeholder="ระบุชื่อวิชา..." 
+                       class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+            </div>
+
+            <div class="flex justify-end gap-2 pt-2">
+                <button onclick="closeEditSubjectModal()" class="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-xl">ยกเลิก</button>
+                <button onclick="saveEditSubject()" class="px-5 py-2 text-sm bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 font-medium shadow-sm">บันทึกการแก้ไข</button>
             </div>
         </div>
     </div>
@@ -244,7 +272,7 @@
                 list.innerHTML = `<p class="text-xs text-slate-400 italic py-2 text-center">ยังไม่มีสัดส่วน เพิ่มด้านบนได้เลย</p>`;
                 return;
             }
-            list.innerHTML = categories.map((cat, idx) => `
+            list.innerHTML = categories.map((cat) => `
                 <div data-id="${cat}" class="flex items-center justify-between p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm transition">
                     <div class="flex items-center gap-2 truncate flex-1">
                         <span class="drag-handle text-slate-400 hover:text-indigo-600 px-1 py-0.5 select-none text-base">☰</span>
@@ -254,7 +282,6 @@
                 </div>
             `).join('');
 
-            // ผูก SortableJS ให้ลากสลับหมวดหมู่ได้
             new Sortable(list, {
                 handle: '.drag-handle',
                 animation: 200,
@@ -265,6 +292,48 @@
                     saveData();
                 }
             });
+        }
+
+        // --- แก้ไขวิชา (Edit Subject) ---
+        function openEditSubjectModal(subjectId) {
+            const subject = subjects.find(s => s.id === subjectId);
+            if (!subject) return;
+
+            document.getElementById('editSubjectId').value = subject.id;
+            document.getElementById('editSubjectName').value = subject.name;
+
+            const editCatSelect = document.getElementById('editSubjectCategory');
+            editCatSelect.innerHTML = categories.map(cat => `
+                <option value="${cat}" ${cat === subject.category ? 'selected' : ''}>📌 ${cat}</option>
+            `).join('');
+
+            document.getElementById('editSubjectModal').classList.remove('hidden');
+            document.getElementById('editSubjectModal').classList.add('flex');
+        }
+
+        function closeEditSubjectModal() {
+            document.getElementById('editSubjectModal').classList.add('hidden');
+            document.getElementById('editSubjectModal').classList.remove('flex');
+        }
+
+        function saveEditSubject() {
+            const id = document.getElementById('editSubjectId').value;
+            const newName = document.getElementById('editSubjectName').value.trim();
+            const newCategory = document.getElementById('editSubjectCategory').value;
+
+            if (!newName) {
+                alert('กรุณากรอกชื่อวิชา');
+                return;
+            }
+
+            const subject = subjects.find(s => s.id === id);
+            if (subject) {
+                subject.name = newName;
+                subject.category = newCategory;
+                saveData();
+                render();
+                closeEditSubjectModal();
+            }
         }
 
         // --- เพิ่ม/ลบวิชาและลิงก์ ---
@@ -401,18 +470,25 @@
 
             container.innerHTML = filteredSubjects.map((sub) => `
                 <div data-id="${sub.id}" class="subject-card bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden transition hover:shadow-md">
+                    <!-- หัวการ์ดวิชา (แตะชื่อเพื่อแก้ไขได้) -->
                     <div class="p-3 md:p-4 bg-slate-50/80 border-b border-slate-200 flex flex-wrap justify-between items-center gap-2">
-                        <div class="flex items-center gap-2">
-                            <span class="subject-handle drag-handle text-slate-400 hover:text-indigo-600 px-1 py-0.5 select-none text-lg">☰</span>
-                            <span class="text-xs font-semibold px-2.5 py-1 rounded-lg bg-indigo-100 text-indigo-700">
+                        <div class="flex items-center gap-2 flex-1 cursor-pointer" onclick="openEditSubjectModal('${sub.id}')">
+                            <span class="subject-handle drag-handle text-slate-400 hover:text-indigo-600 px-1 py-0.5 select-none text-lg" onclick="event.stopPropagation()">☰</span>
+                            <span class="text-xs font-semibold px-2.5 py-1 rounded-lg bg-indigo-100 text-indigo-700 hover:bg-indigo-200 transition">
                                 ${sub.category || 'ทั่วไป'}
                             </span>
-                            <h2 class="font-bold text-sm md:text-base text-slate-800">${sub.name}</h2>
+                            <h2 class="font-bold text-sm md:text-base text-slate-800 hover:text-indigo-600 transition flex items-center gap-1.5">
+                                ${sub.name} <span class="text-xs text-slate-400">✏️</span>
+                            </h2>
                         </div>
                         <div class="flex items-center gap-1.5">
                             <button onclick="openAddLinkModal('${sub.id}')" 
                                     class="text-xs bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-2.5 py-1.5 rounded-lg flex items-center gap-1 transition">
                                 <span>+</span> เพิ่มลิงก์
+                            </button>
+                            <button onclick="openEditSubjectModal('${sub.id}')" 
+                                    class="text-xs text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 p-1.5 rounded-lg transition" title="แก้ไขวิชา">
+                                ✏️
                             </button>
                             <button onclick="deleteSubject('${sub.id}')" 
                                     class="text-xs text-slate-400 hover:text-rose-500 hover:bg-rose-50 p-1.5 rounded-lg transition" title="ลบวิชา">
@@ -421,6 +497,7 @@
                         </div>
                     </div>
                     
+                    <!-- ส่วนสรุป & ข้อสอบ -->
                     <div class="p-3 md:p-4 grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                         <!-- สรุป -->
                         <div class="space-y-2 bg-emerald-50/40 p-3 rounded-xl border border-emerald-100/70">
@@ -463,7 +540,7 @@
                 </div>
             `).join('');
 
-            // ผูก Sortable ให้รายการวิชา
+            // Sortable วิชา
             new Sortable(container, {
                 handle: '.subject-handle',
                 animation: 200,
@@ -477,7 +554,7 @@
                 }
             });
 
-            // ผูก Sortable ให้ทุกลิงก์สรุปและข้อสอบ
+            // Sortable ลิงก์
             filteredSubjects.forEach(sub => {
                 const sumContainer = document.getElementById(`summaries_${sub.id}`);
                 if (sumContainer) {
