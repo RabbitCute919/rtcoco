@@ -36,7 +36,12 @@
                     📂
                 </div>
                 <div>
-                    <h1 class="text-lg md:text-xl font-bold text-slate-900 leading-tight">คลังแฟ้มเอกสารการเรียน</h1>
+                    <div class="flex items-center gap-2">
+                        <h1 class="text-lg md:text-xl font-bold text-slate-900 leading-tight">คลังแฟ้มเอกสารการเรียน</h1>
+                        <span id="roleBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+                            👤 เจ้าของคลัง
+                        </span>
+                    </div>
                     <div id="syncStatus" class="flex items-center gap-1.5 text-[11px] text-slate-500 font-medium">
                         <span class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span> กำลังเชื่อมต่อ Google Drive...
                     </div>
@@ -52,7 +57,12 @@
     <main class="max-w-5xl mx-auto px-4 mt-6 space-y-6">
 
         <!-- แถบนำทาง (Breadcrumb Navigation) -->
-        <nav class="bg-white px-4 py-2.5 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-2 text-xs md:text-sm font-medium text-slate-600 overflow-x-auto scrollbar-none" id="breadcrumbNav">
+        <nav class="bg-white px-4 py-2.5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between text-xs md:text-sm font-medium text-slate-600 overflow-x-auto scrollbar-none" id="breadcrumbNavContainer">
+            <div class="flex items-center gap-2" id="breadcrumbNav">
+            </div>
+            <button id="btnQuickShare" onclick="shareCurrentPage()" class="text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold px-3 py-1.5 rounded-xl flex items-center gap-1 transition shrink-0 ml-2">
+                🔗 แชร์หน้านี้
+            </button>
         </nav>
 
         <!-- ================= LEVEL 1: หน้าหลัก โฟลเดอร์ชั้นปี (YEARS VIEW) ================= -->
@@ -75,11 +85,16 @@
                     <h2 class="text-lg md:text-xl font-bold text-slate-900 flex items-center gap-2" id="currentYearTitle">
                         🎓 ปี 1
                     </h2>
-                    <p class="text-xs text-slate-500 mt-0.5" id="currentYearSubtitle">เลือกโฟลเดอร์วิชาเพื่อเปิดดูไฟล์บทเรียน</p>
+                    <p class="text-xs text-slate-500 mt-0.5" id="currentYearSubtitle">เลือกโฟลเดอร์วิชาเพื่อเปิดดูบทเรียน</p>
                 </div>
-                <button onclick="openAddSubjectModal()" class="text-xs md:text-sm bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-4 py-2 rounded-xl flex items-center gap-1.5 shadow-sm transition">
-                    <span>➕</span> เพิ่มวิชาในชั้นปีนี้
-                </button>
+                <div class="flex items-center gap-2">
+                    <button id="btnShareYear" onclick="shareYearFolder()" class="text-xs md:text-sm bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-medium px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition">
+                        🔗 แชร์ปีนี้ให้น้อง
+                    </button>
+                    <button id="btnAddSubjectInYear" onclick="openAddSubjectModal()" class="text-xs md:text-sm bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-4 py-2 rounded-xl flex items-center gap-1.5 shadow-sm transition">
+                        <span>➕</span> เพิ่มวิชา
+                    </button>
+                </div>
             </div>
 
             <div id="subjectsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -101,13 +116,16 @@
                     </div>
                 </div>
                 <div class="flex items-center gap-2">
-                    <button onclick="openAddChapterModal()" class="text-xs md:text-sm bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-4 py-2.5 rounded-xl flex items-center gap-1.5 shadow-2xs transition">
-                        <span>➕</span> เพิ่มบทเรียนใหม่
+                    <button onclick="shareSubjectFolder()" class="text-xs md:text-sm bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-medium px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition">
+                        🔗 แชร์วิชานี้
                     </button>
-                    <button onclick="openEditCurrentSubjectModal()" class="text-xs text-slate-500 hover:text-indigo-600 hover:bg-slate-100 p-2.5 rounded-xl transition" title="แก้ไขวิชา">
+                    <button id="btnAddChapterInSubject" onclick="openAddChapterModal()" class="text-xs md:text-sm bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-4 py-2.5 rounded-xl flex items-center gap-1.5 shadow-2xs transition">
+                        <span>➕</span> เพิ่มบทเรียน
+                    </button>
+                    <button id="btnEditSubjectInSubject" onclick="openEditCurrentSubjectModal()" class="text-xs text-slate-500 hover:text-indigo-600 hover:bg-slate-100 p-2.5 rounded-xl transition" title="แก้ไขวิชา">
                         ✏️
                     </button>
-                    <button onclick="openDeleteModal('คุณต้องการลบวิชานี้และบทเรียนทั้งหมดใช่หรือไม่?', deleteCurrentSubject)" class="text-xs text-slate-400 hover:text-rose-500 hover:bg-rose-50 p-2.5 rounded-xl transition" title="ลบวิชา">
+                    <button id="btnDeleteSubjectInSubject" onclick="deleteCurrentSubjectConfirm()" class="text-xs text-slate-400 hover:text-rose-500 hover:bg-rose-50 p-2.5 rounded-xl transition" title="ลบวิชา">
                         🗑️
                     </button>
                 </div>
@@ -123,7 +141,23 @@
 
     <!-- ================= MODALS ================= -->
 
-    <!-- Modal: สร้าง/แก้ไข ชั้นปี -->
+    <!-- Modal: แจ้งเตือนแชร์ลิงก์สำเร็จ -->
+    <div id="modalShareNotification" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs hidden items-center justify-center p-4 z-50">
+        <div class="bg-white p-6 rounded-3xl max-w-sm w-full shadow-2xl text-center space-y-3">
+            <div class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 text-2xl flex items-center justify-center mx-auto">
+                ✅
+            </div>
+            <h3 class="text-base font-bold text-slate-900">คัดลอกลิงก์แชร์แล้ว!</h3>
+            <p id="shareDetailsText" class="text-xs text-slate-500 leading-relaxed"></p>
+            <div class="p-2.5 bg-slate-50 rounded-xl text-xs text-slate-600 font-mono break-all border border-slate-200" id="shareUrlDisplay">
+            </div>
+            <button onclick="closeShareModal()" class="w-full py-2.5 bg-indigo-600 text-white text-sm font-medium rounded-xl hover:bg-indigo-700 shadow-sm mt-2">
+                เข้าใจแล้ว (นำไปวางใน LINE ได้เลย)
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal: เพิ่มโฟลเดอร์ชั้นปี -->
     <div id="modalCategory" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs hidden items-center justify-center p-4 z-50">
         <div class="bg-white p-6 rounded-3xl max-w-md w-full shadow-2xl space-y-4">
             <div class="flex justify-between items-center border-b border-slate-100 pb-3">
@@ -189,11 +223,11 @@
         </div>
     </div>
 
-    <!-- Modal: เพิ่ม & แก้ไข ไฟล์/เอกสาร/รูปภาพ (File Manager Modal) -->
+    <!-- Modal: เพิ่ม & แก้ไข ไฟล์/เอกสาร (พร้อมระบบอัปโหลดจริงขึ้น Google Drive) -->
     <div id="modalItemForm" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs hidden items-center justify-center p-4 z-50">
         <div class="bg-white p-6 rounded-3xl max-w-md w-full shadow-2xl space-y-4">
             <div class="flex justify-between items-center border-b border-slate-100 pb-3">
-                <h3 class="text-base font-bold text-slate-900" id="modalItemFormHeading">📄 เพิ่มไฟล์เอกสาร / สื่อ</h3>
+                <h3 class="text-base font-bold text-slate-900" id="modalItemFormHeading">📄 จัดการไฟล์เอกสาร</h3>
                 <button onclick="closeModalItemForm()" class="text-slate-400 hover:text-slate-600 text-lg">✕</button>
             </div>
             <input type="hidden" id="itemFormChapterId">
@@ -204,7 +238,7 @@
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1.5">ชนิดไฟล์ / สื่อ</label>
                     <select id="modalItemMediaType" onchange="handleMediaTypeChange()" class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-medium bg-slate-50">
-                        <option value="pdf">📕 ไฟล์ PDF / เอกสารประกอบการสอน</option>
+                        <option value="pdf">📕 ไฟล์ PDF / เอกสารสรุป</option>
                         <option value="image">🖼️ ไฟล์รูปภาพ / X-ray / Diagram</option>
                         <option value="slide">📊 ไฟล์สไลด์ PowerPoint / Word (.pptx, .docx)</option>
                         <option value="exam">🎯 ไฟล์ข้อสอบ / แบบฝึกหัด</option>
@@ -212,11 +246,14 @@
                     </select>
                 </div>
 
-                <!-- ช่องเลือกไฟล์จาก iPad (สำหรับผู้ที่อยากแปลงไฟล์เป็น URL หรือเลือกไฟล์) -->
-                <div id="fileUploadHelperBox" class="p-3 bg-indigo-50/50 rounded-2xl border border-indigo-100 space-y-1.5">
-                    <label class="block text-[11px] font-bold text-indigo-900">📁 เลือกไฟล์จาก iPad หรือ แกลเลอรีรูปภาพ:</label>
+                <!-- กล่องเลือกไฟล์จาก iPad -->
+                <div id="fileUploadHelperBox" class="p-3 bg-indigo-50/50 rounded-2xl border border-indigo-100 space-y-2">
+                    <div class="flex items-center justify-between">
+                        <label class="block text-[11px] font-bold text-indigo-900">📁 เลือกไฟล์จากเครื่อง iPad / แกลเลอรี:</label>
+                        <button type="button" id="btnClearSelectedFile" onclick="clearSelectedFile()" class="hidden text-[10px] text-rose-500 hover:underline font-semibold">ลบไฟล์ที่เลือก ✕</button>
+                    </div>
                     <input type="file" id="localFileInput" onchange="handleLocalFileSelected(event)" class="w-full text-xs text-slate-500 file:mr-2 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-700">
-                    <p class="text-[10px] text-slate-400">💡 หากไฟล์อยู่ใน Google Drive ให้วางลิงก์ในช่องด้านล่างได้เลยครับ</p>
+                    <p id="fileUploadStatus" class="text-[10px] text-indigo-600 font-medium"></p>
                 </div>
 
                 <div>
@@ -226,7 +263,7 @@
                 </div>
 
                 <div id="urlFieldContainer">
-                    <label class="block text-xs font-semibold text-slate-600 mb-1.5" id="labelItemUrl">ลิงก์ไฟล์ (Google Drive, Canva, Direct Link)</label>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1.5" id="labelItemUrl">ลิงก์ไฟล์ (หรือวางลิงก์ Google Drive)</label>
                     <input id="modalItemUrl" type="url" placeholder="https://drive.google.com/file/d/..." 
                            class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
                 </div>
@@ -234,29 +271,14 @@
 
             <div class="flex justify-end gap-2 pt-2">
                 <button onclick="closeModalItemForm()" class="px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-100 rounded-xl font-medium">ยกเลิก</button>
-                <button onclick="confirmSaveItemForm()" class="px-5 py-2.5 text-sm bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 font-medium shadow-sm">บันทึกไฟล์</button>
+                <button id="btnSubmitItemForm" onclick="confirmSaveItemForm()" class="px-5 py-2.5 text-sm bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 font-medium shadow-sm flex items-center gap-1.5">
+                    <span>บันทึกไฟล์</span>
+                </button>
             </div>
         </div>
     </div>
 
-    <!-- Modal: ยืนยันการลบ -->
-    <div id="modalConfirmDelete" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs hidden items-center justify-center p-4 z-50">
-        <div class="bg-white p-6 rounded-3xl max-w-sm w-full shadow-2xl space-y-4 text-center">
-            <div class="w-12 h-12 rounded-full bg-rose-100 text-rose-600 text-2xl flex items-center justify-center mx-auto">
-                🗑️
-            </div>
-            <div>
-                <h3 class="text-base font-bold text-slate-900">ยืนยันการลบ?</h3>
-                <p id="confirmDeleteMessage" class="text-xs text-slate-500 mt-1 leading-relaxed">คุณแน่ใจหรือไม่ว่าต้องการลบรายการนี้</p>
-            </div>
-            <div class="flex justify-center gap-2 pt-1">
-                <button onclick="closeConfirmDeleteModal()" class="px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-100 rounded-xl font-medium flex-1">ยกเลิก</button>
-                <button id="btnExecuteDelete" class="px-4 py-2.5 text-sm bg-rose-600 text-white rounded-xl hover:bg-rose-700 font-medium shadow-sm flex-1">ลบข้อมูล</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal: ดูรูปภาพขยายใหญ่ (Lightbox) -->
+    <!-- Modal: ดูรูปขยายใหญ่ -->
     <div id="imageLightboxModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4 z-50" onclick="closeImageLightbox()">
         <div class="relative max-w-3xl max-h-[90vh] flex flex-col items-center" onclick="event.stopPropagation()">
             <button onclick="closeImageLightbox()" class="absolute -top-10 right-0 text-white text-2xl bg-white/20 hover:bg-white/40 w-8 h-8 rounded-full flex items-center justify-center">✕</button>
@@ -299,7 +321,12 @@
 
         let currentSelectedYear = null;
         let currentSelectedSubjectId = null;
-        let pendingDeleteCallback = null;
+        let currentSelectedFileBase64 = null;
+        let currentSelectedFileName = "";
+        let currentSelectedFileType = "";
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const isViewOnlyMode = urlParams.get('mode') === 'view';
 
         function updateSyncStatus(status, text) {
             const el = document.getElementById('syncStatus');
@@ -315,7 +342,6 @@
             }
         }
 
-        // แปลง Google Drive URL ให้เป็นลิงก์ไฟล์ตรง (Direct File Link)
         function formatDirectFileUrl(url) {
             if (!url) return "";
             if (url.includes("drive.google.com/file/d/")) {
@@ -346,6 +372,11 @@
         }
 
         async function loadDataFromGoogleDrive() {
+            if (isViewOnlyMode) {
+                document.getElementById('roleBadge').className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800 border border-indigo-200";
+                document.getElementById('roleBadge').innerText = "📖 โหมดอ่าน & โหลดไฟล์";
+            }
+
             try {
                 updateSyncStatus('syncing', 'กำลังโหลดข้อมูลจาก Google Drive...');
                 const res = await fetch(GOOGLE_SCRIPT_URL);
@@ -354,7 +385,23 @@
                 if (data.categories && data.categories.length > 0) categories = data.categories;
                 if (data.subjects) subjects = normalizeSubjects(data.subjects);
 
-                updateSyncStatus('success', 'บันทึกลง Google Drive แล้ว');
+                updateSyncStatus('success', 'เชื่อมต่อข้อมูลสำเร็จ');
+
+                const targetYear = urlParams.get('year');
+                const targetSub = urlParams.get('subject');
+
+                if (targetSub) {
+                    const foundSub = subjects.find(s => s.id === targetSub || s.name === targetSub);
+                    if (foundSub) {
+                        currentSelectedYear = foundSub.category;
+                        currentSelectedSubjectId = foundSub.id;
+                    }
+                } else if (targetYear) {
+                    if (categories.includes(targetYear)) {
+                        currentSelectedYear = targetYear;
+                    }
+                }
+
                 render();
             } catch (err) {
                 console.error(err);
@@ -366,6 +413,8 @@
         }
 
         async function saveData() {
+            if (isViewOnlyMode) return;
+
             localStorage.setItem('study_vault_categories', JSON.stringify(categories));
             localStorage.setItem('study_vault_v5', JSON.stringify(subjects));
 
@@ -384,23 +433,47 @@
             }
         }
 
-        // --- Custom Confirm Delete Dialog ---
-        function openDeleteModal(message, onConfirm) {
-            document.getElementById('confirmDeleteMessage').innerText = message;
-            pendingDeleteCallback = onConfirm;
-            document.getElementById('modalConfirmDelete').classList.remove('hidden');
-            document.getElementById('modalConfirmDelete').classList.add('flex');
-
-            document.getElementById('btnExecuteDelete').onclick = function() {
-                if (pendingDeleteCallback) pendingDeleteCallback();
-                closeConfirmDeleteModal();
-            };
+        // --- ระบบแชร์ ---
+        function copyToClipboard(url, message) {
+            navigator.clipboard.writeText(url).then(() => {
+                document.getElementById('shareDetailsText').innerText = message;
+                document.getElementById('shareUrlDisplay').innerText = url;
+                document.getElementById('modalShareNotification').classList.remove('hidden');
+                document.getElementById('modalShareNotification').classList.add('flex');
+            }).catch(() => {
+                prompt("คัดลอกลิงก์แชร์นี้ได้เลยครับ:", url);
+            });
         }
 
-        function closeConfirmDeleteModal() {
-            document.getElementById('modalConfirmDelete').classList.add('hidden');
-            document.getElementById('modalConfirmDelete').classList.remove('flex');
-            pendingDeleteCallback = null;
+        function closeShareModal() {
+            document.getElementById('modalShareNotification').classList.add('hidden');
+            document.getElementById('modalShareNotification').classList.remove('flex');
+        }
+
+        function shareYearFolder() {
+            const baseUrl = window.location.origin + window.location.pathname;
+            const shareUrl = `${baseUrl}?year=${encodeURIComponent(currentSelectedYear)}&mode=view`;
+            copyToClipboard(shareUrl, `ลิงก์แฟ้มโฟลเดอร์ "🎓 ${currentSelectedYear}" (โหมดอ่านและโหลดไฟล์ สำหรับส่งต่อให้น้องรหัส)`);
+        }
+
+        function shareSubjectFolder() {
+            const sub = subjects.find(s => s.id === currentSelectedSubjectId);
+            if (!sub) return;
+            const baseUrl = window.location.origin + window.location.pathname;
+            const shareUrl = `${baseUrl}?subject=${encodeURIComponent(sub.id)}&mode=view`;
+            copyToClipboard(shareUrl, `ลิงก์วิชา "📚 ${sub.name} (${sub.category})" (โหมดอ่านและโหลดไฟล์ สำหรับส่งต่อให้น้องรหัส)`);
+        }
+
+        function shareCurrentPage() {
+            if (currentSelectedSubjectId) {
+                shareSubjectFolder();
+            } else if (currentSelectedYear) {
+                shareYearFolder();
+            } else {
+                const baseUrl = window.location.origin + window.location.pathname;
+                const shareUrl = `${baseUrl}?mode=view`;
+                copyToClipboard(shareUrl, `ลิงก์คลังแฟ้มการเรียนทั้งหมด (โหมดอ่านและโหลดไฟล์ สำหรับส่งต่อให้น้องรหัส)`);
+            }
         }
 
         // --- Navigation ---
@@ -484,12 +557,12 @@
         }
 
         function deleteCategory(catName) {
-            openDeleteModal(`ต้องการลบโฟลเดอร์ "${catName}" และวิชาทั้งหมดในชั้นปีนี้ใช่หรือไม่?`, () => {
+            if (confirm(`ต้องการลบโฟลเดอร์ "${catName}" และวิชาทั้งหมดในชั้นปีนี้ใช่หรือไม่?`)) {
                 categories = categories.filter(c => c !== catName);
                 subjects = subjects.filter(s => s.category !== catName);
                 saveData();
                 goToYearsView();
-            });
+            }
         }
 
         // --- วิชา ---
@@ -564,10 +637,12 @@
             render();
         }
 
-        function deleteCurrentSubject() {
-            subjects = subjects.filter(s => s.id !== currentSelectedSubjectId);
-            saveData();
-            goToSubjectsView(currentSelectedYear);
+        function deleteCurrentSubjectConfirm() {
+            if (confirm('คุณต้องการลบวิชานี้และบทเรียนทั้งหมดใช่หรือไม่?')) {
+                subjects = subjects.filter(s => s.id !== currentSelectedSubjectId);
+                saveData();
+                goToSubjectsView(currentSelectedYear);
+            }
         }
 
         // --- จัดการบทเรียน ---
@@ -624,16 +699,16 @@
         }
 
         function deleteChapter(chapterId) {
-            openDeleteModal('คุณต้องการลบบทเรียนนี้และไฟล์ทั้งหมดในบทนี้ใช่หรือไม่?', () => {
+            if (confirm('คุณต้องการลบบทเรียนนี้และไฟล์ทั้งหมดในบทนี้ใช่หรือไม่?')) {
                 const subject = subjects.find(s => s.id === currentSelectedSubjectId);
                 if (!subject) return;
                 subject.chapters = subject.chapters.filter(c => c.id !== chapterId);
                 saveData();
                 render();
-            });
+            }
         }
 
-        // --- เพิ่ม & แก้ไข ไฟล์/เอกสาร ---
+        // --- ระบบเลือกไฟล์และอัปโหลดจริง ---
         function handleMediaTypeChange() {
             const type = document.getElementById('modalItemMediaType').value;
             const urlContainer = document.getElementById('urlFieldContainer');
@@ -649,12 +724,12 @@
                 urlContainer.classList.remove('hidden');
                 fileUploadBox.classList.remove('hidden');
                 labelTitle.innerText = "ชื่อรูปภาพ / โครงสร้างกายวิภาค";
-                labelUrl.innerText = "ลิงก์ไฟล์รูปภาพ (Direct URL, Imgur, Drive)";
+                labelUrl.innerText = "ลิงก์รูปภาพ (หรือเลือกไฟล์จากเครื่องด้านบน)";
             } else {
                 urlContainer.classList.remove('hidden');
                 fileUploadBox.classList.remove('hidden');
                 labelTitle.innerText = "ชื่อไฟล์เอกสาร / ชีตสรุป";
-                labelUrl.innerText = "ลิงก์ไฟล์ Google Drive หรือ ลิงก์ดาวน์โหลด";
+                labelUrl.innerText = "ลิงก์ไฟล์ (หรือเลือกไฟล์จากเครื่องด้านบน)";
             }
         }
 
@@ -662,22 +737,33 @@
             const file = event.target.files[0];
             if (!file) return;
 
-            // ใส่ชื่อไฟล์ลงในช่องชื่อให้อัตโนมัติ
+            currentSelectedFileName = file.name;
+            currentSelectedFileType = file.type || "application/octet-stream";
+
             const titleInput = document.getElementById('modalItemTitle');
             if (!titleInput.value) {
                 titleInput.value = file.name;
             }
 
-            // ถ้าเป็นรูปภาพ สามารถทำ Preview Data URI ได้ทันที
-            if (file.type.startsWith('image/')) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    document.getElementById('modalItemUrl').value = e.target.result;
-                    document.getElementById('modalItemMediaType').value = 'image';
-                    handleMediaTypeChange();
-                };
-                reader.readAsDataURL(file);
-            }
+            document.getElementById('fileUploadStatus').innerText = `⏳ กำลังเตรียมไฟล์: ${file.name}`;
+            document.getElementById('btnClearSelectedFile').classList.remove('hidden');
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const result = e.target.result;
+                currentSelectedFileBase64 = result.split(',')[1];
+                document.getElementById('fileUploadStatus').innerText = `✅ ไฟล์พร้อมอัปโหลด: ${file.name}`;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function clearSelectedFile() {
+            document.getElementById('localFileInput').value = '';
+            currentSelectedFileBase64 = null;
+            currentSelectedFileName = "";
+            currentSelectedFileType = "";
+            document.getElementById('fileUploadStatus').innerText = '';
+            document.getElementById('btnClearSelectedFile').classList.add('hidden');
         }
 
         function openAddLinkModalToChapter(chapterId, chapterName) {
@@ -688,7 +774,7 @@
             document.getElementById('modalItemTitle').value = '';
             document.getElementById('modalItemUrl').value = '';
             document.getElementById('modalItemMediaType').value = 'pdf';
-            document.getElementById('localFileInput').value = '';
+            clearSelectedFile();
             handleMediaTypeChange();
             document.getElementById('modalItemForm').classList.remove('hidden');
             document.getElementById('modalItemForm').classList.add('flex');
@@ -712,7 +798,7 @@
             document.getElementById('modalItemTitle').value = item.title || '';
             document.getElementById('modalItemUrl').value = item.url || '';
             document.getElementById('modalItemMediaType').value = item.mediaType || (sectionType === 'exam' ? 'exam' : 'pdf');
-            document.getElementById('localFileInput').value = '';
+            clearSelectedFile();
             
             handleMediaTypeChange();
             document.getElementById('modalItemForm').classList.remove('hidden');
@@ -724,7 +810,7 @@
             document.getElementById('modalItemForm').classList.remove('flex');
         }
 
-        function confirmSaveItemForm() {
+        async function confirmSaveItemForm() {
             const subject = subjects.find(s => s.id === currentSelectedSubjectId);
             if (!subject) return;
 
@@ -744,8 +830,39 @@
                 return;
             }
 
+            const btnSubmit = document.getElementById('btnSubmitItemForm');
+
+            // หากมีการเลือกไฟล์จากเครื่อง iPad ให้อัปโหลดขึ้น Google Drive ก่อน
+            if (currentSelectedFileBase64 && type !== 'note') {
+                btnSubmit.disabled = true;
+                btnSubmit.innerHTML = `<span class="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span> กำลังอัปโหลดขึ้น Drive...`;
+                
+                try {
+                    const res = await fetch(GOOGLE_SCRIPT_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'text/plain' },
+                        body: JSON.stringify({
+                            action: "uploadFile",
+                            fileName: currentSelectedFileName,
+                            mimeType: currentSelectedFileType,
+                            base64Data: currentSelectedFileBase64
+                        })
+                    });
+                    const resData = await res.json();
+                    if (resData.status === "success" && resData.fileUrl) {
+                        url = resData.fileUrl;
+                    }
+                } catch (err) {
+                    console.error("Upload error:", err);
+                    // กรณี no-cors fallback
+                }
+
+                btnSubmit.disabled = false;
+                btnSubmit.innerHTML = `<span>บันทึกไฟล์</span>`;
+            }
+
             if (type !== 'note' && !url) {
-                alert('กรุณาเลือกไฟล์หรือวางลิงก์ไฟล์');
+                alert('กรุณาเลือกไฟล์จากเครื่อง หรือวางลิงก์ไฟล์ Google Drive');
                 return;
             }
 
@@ -783,8 +900,9 @@
             render();
         }
 
+        // ฟังก์ชันลบไฟล์เดี่ยว
         function deleteLink(chapterId, sectionType, idx) {
-            openDeleteModal('คุณต้องการลบไฟล์นี้ใช่หรือไม่?', () => {
+            if (confirm('คุณต้องการลบไฟล์นี้ใช่หรือไม่?')) {
                 const subject = subjects.find(s => s.id === currentSelectedSubjectId);
                 if (!subject) return;
                 const chap = (subject.chapters || []).find(c => c.id === chapterId);
@@ -795,10 +913,10 @@
 
                 saveData();
                 render();
-            });
+            }
         }
 
-        // --- Lightbox ดูรูปขยายใหญ่ ---
+        // --- Lightbox ---
         function showImageLightbox(imgUrl, caption) {
             document.getElementById('lightboxImage').src = imgUrl;
             document.getElementById('lightboxCaption').innerText = caption;
@@ -816,8 +934,15 @@
             const btnContainer = document.getElementById('headerActionButtons');
             const breadcrumbNav = document.getElementById('breadcrumbNav');
 
+            if (isViewOnlyMode) {
+                if (document.getElementById('btnAddSubjectInYear')) document.getElementById('btnAddSubjectInYear').classList.add('hidden');
+                if (document.getElementById('btnAddChapterInSubject')) document.getElementById('btnAddChapterInSubject').classList.add('hidden');
+                if (document.getElementById('btnEditSubjectInSubject')) document.getElementById('btnEditSubjectInSubject').classList.add('hidden');
+                if (document.getElementById('btnDeleteSubjectInSubject')) document.getElementById('btnDeleteSubjectInSubject').classList.add('hidden');
+            }
+
             if (!currentSelectedYear && !currentSelectedSubjectId) {
-                btnContainer.innerHTML = `
+                btnContainer.innerHTML = isViewOnlyMode ? '' : `
                     <button onclick="openModalAddCategory()" class="text-xs md:text-sm bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-4 py-2 rounded-xl flex items-center gap-1.5 shadow-sm transition">
                         <span>➕</span> สร้างโฟลเดอร์ปีใหม่
                     </button>
@@ -830,9 +955,6 @@
                 btnContainer.innerHTML = `
                     <button onclick="goToYearsView()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium px-3 py-2 rounded-xl transition">
                         ⬅️ กลับหน้าชั้นปี
-                    </button>
-                    <button onclick="openAddSubjectModal()" class="text-xs md:text-sm bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-3.5 py-2 rounded-xl flex items-center gap-1.5 shadow-sm transition">
-                        <span>➕</span> เพิ่มวิชา
                     </button>
                 `;
                 breadcrumbNav.innerHTML = `
@@ -861,7 +983,7 @@
 
         // Render ชั้นปี (Level 1)
         function renderYearsGrid() {
-            document.getElementById('yearsTotalCount').innerText = `${categories.length} โฟลเดอร์ชั้นปี (ลากสลับตำแหน่งได้)`;
+            document.getElementById('yearsTotalCount').innerText = `${categories.length} โฟลเดอร์ชั้นปี`;
             const grid = document.getElementById('yearsGrid');
 
             grid.innerHTML = categories.map((cat) => {
@@ -879,15 +1001,16 @@
                     <div class="space-y-3">
                         <div class="flex items-start justify-between">
                             <div class="flex items-center gap-2.5">
-                                <span class="year-handle drag-handle text-slate-300 hover:text-indigo-600 px-1 py-0.5 text-base select-none" onclick="event.stopPropagation()">☰</span>
+                                ${!isViewOnlyMode ? '<span class="year-handle drag-handle text-slate-300 hover:text-indigo-600 px-1 py-0.5 text-base select-none" onclick="event.stopPropagation()">☰</span>' : ''}
                                 <div class="w-12 h-12 rounded-2xl bg-amber-50 group-hover:bg-amber-100 flex items-center justify-center text-2xl transition">
                                     📁
                                 </div>
                             </div>
+                            ${!isViewOnlyMode ? `
                             <div class="flex items-center gap-1" onclick="event.stopPropagation()">
                                 <button onclick="editCategory('${cat}')" class="text-slate-400 hover:text-indigo-600 p-1.5 rounded-lg text-xs" title="แก้ไขชื่อ">✏️</button>
                                 <button onclick="deleteCategory('${cat}')" class="text-slate-400 hover:text-rose-500 p-1.5 rounded-lg text-xs" title="ลบ">🗑️</button>
-                            </div>
+                            </div>` : ''}
                         </div>
                         <div>
                             <h3 class="font-bold text-slate-900 text-lg group-hover:text-indigo-600 transition">
@@ -897,7 +1020,7 @@
                         </div>
                     </div>
                     <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-                        <span>📚 ${totalFiles} เอกสาร/ไฟล์</span>
+                        <span>📚 ${totalFiles} ไฟล์เอกสาร</span>
                         <span class="font-semibold text-indigo-600 group-hover:translate-x-0.5 transition">
                             เปิดแฟ้ม ➔
                         </span>
@@ -906,23 +1029,25 @@
                 `;
             }).join('');
 
-            new Sortable(grid, {
-                handle: '.year-handle',
-                animation: 200,
-                ghostClass: 'sortable-ghost',
-                onEnd: function () {
-                    const newOrder = Array.from(grid.children).map(c => c.getAttribute('data-id'));
-                    categories = newOrder.filter(Boolean);
-                    saveData();
-                }
-            });
+            if (!isViewOnlyMode) {
+                new Sortable(grid, {
+                    handle: '.year-handle',
+                    animation: 200,
+                    ghostClass: 'sortable-ghost',
+                    onEnd: function () {
+                        const newOrder = Array.from(grid.children).map(c => c.getAttribute('data-id'));
+                        categories = newOrder.filter(Boolean);
+                        saveData();
+                    }
+                });
+            }
         }
 
         // Render วิชา (Level 2)
         function renderSubjectsGrid() {
             document.getElementById('currentYearTitle').innerText = `🎓 ${currentSelectedYear}`;
             const yearSubs = subjects.filter(s => s.category === currentSelectedYear);
-            document.getElementById('currentYearSubtitle').innerText = `มีทั้งหมด ${yearSubs.length} วิชาในชั้นปีนี้ (ลากสลับตำแหน่งได้)`;
+            document.getElementById('currentYearSubtitle').innerText = `มีทั้งหมด ${yearSubs.length} วิชาในชั้นปีนี้`;
 
             const grid = document.getElementById('subjectsGrid');
             if (yearSubs.length === 0) {
@@ -930,7 +1055,7 @@
                     <div class="col-span-full text-center py-16 bg-white rounded-3xl border border-dashed border-slate-200 p-8">
                         <p class="text-4xl mb-2">📂</p>
                         <p class="text-slate-600 font-semibold">ยังไม่มีวิชาในโฟลเดอร์ "${currentSelectedYear}"</p>
-                        <p class="text-xs text-slate-400 mt-1">กดปุ่ม "+ เพิ่มวิชาในชั้นปีนี้" ด้านบนเพื่อเริ่มสร้าง</p>
+                        ${!isViewOnlyMode ? '<p class="text-xs text-slate-400 mt-1">กดปุ่ม "+ เพิ่มวิชา" ด้านบนเพื่อเริ่มสร้าง</p>' : ''}
                     </div>
                 `;
                 return;
@@ -950,7 +1075,7 @@
                     <div class="space-y-3">
                         <div class="flex items-start justify-between">
                             <div class="flex items-center gap-2.5">
-                                <span class="subject-handle drag-handle text-slate-300 hover:text-indigo-600 px-1 py-0.5 text-base select-none" onclick="event.stopPropagation()">☰</span>
+                                ${!isViewOnlyMode ? '<span class="subject-handle drag-handle text-slate-300 hover:text-indigo-600 px-1 py-0.5 text-base select-none" onclick="event.stopPropagation()">☰</span>' : ''}
                                 <div class="w-12 h-12 rounded-2xl bg-indigo-50 group-hover:bg-indigo-100 flex items-center justify-center text-2xl transition">
                                     📚
                                 </div>
@@ -980,38 +1105,42 @@
                 `;
             }).join('');
 
-            new Sortable(grid, {
-                handle: '.subject-handle',
-                animation: 200,
-                ghostClass: 'sortable-ghost',
-                onEnd: function () {
-                    const orderedIds = Array.from(grid.children).map(c => c.getAttribute('data-id'));
-                    const otherSubs = subjects.filter(s => s.category !== currentSelectedYear);
-                    const currentYearSubsSorted = orderedIds.map(id => subjects.find(s => s.id === id)).filter(Boolean);
-                    subjects = [...currentYearSubsSorted, ...otherSubs];
-                    saveData();
-                }
-            });
+            if (!isViewOnlyMode) {
+                new Sortable(grid, {
+                    handle: '.subject-handle',
+                    animation: 200,
+                    ghostClass: 'sortable-ghost',
+                    onEnd: function () {
+                        const orderedIds = Array.from(grid.children).map(c => c.getAttribute('data-id'));
+                        const otherSubs = subjects.filter(s => s.category !== currentSelectedYear);
+                        const currentYearSubsSorted = orderedIds.map(id => subjects.find(s => s.id === id)).filter(Boolean);
+                        subjects = [...currentYearSubsSorted, ...otherSubs];
+                        saveData();
+                    }
+                });
+            }
         }
 
-        // ฟังก์ชันสร้างการ์ดไฟล์เอกสารจริง
+        // Render การ์ดไฟล์เอกสาร (ปุ่มลบ ✕ ทำงาน 100%)
         function renderMediaItem(item, idx, chapterId, sectionType) {
             const mType = item.mediaType || (sectionType === 'exam' ? 'exam' : 'pdf');
             const directUrl = formatDirectFileUrl(item.url);
             
-            // 1. รูปภาพ / X-ray (พรีวิว)
+            // 1. รูปภาพ
             if (mType === 'image') {
                 return `
                 <div data-index="${idx}" class="p-3 rounded-2xl bg-white hover:bg-slate-50 border border-slate-200 transition shadow-2xs space-y-2">
                     <div class="flex items-center justify-between gap-1">
-                        <span class="link-handle drag-handle text-slate-300 hover:text-indigo-600 px-1 select-none text-xs">☰</span>
+                        ${!isViewOnlyMode ? '<span class="link-handle drag-handle text-slate-300 hover:text-indigo-600 px-1 select-none text-xs">☰</span>' : ''}
                         <span class="text-xs font-semibold text-slate-800 truncate flex-1 flex items-center gap-1">
                             <span>🖼️</span> ${item.title}
                         </span>
                         <div class="flex items-center gap-1">
-                            <a href="${directUrl}" target="_blank" class="text-[10px] text-indigo-600 hover:underline px-2 py-0.5 bg-indigo-50 rounded-lg font-medium">เปิดไฟล์เต็ม</a>
-                            <button onclick="openEditItemModal('${chapterId}', '${sectionType}', ${idx})" class="text-slate-400 hover:text-indigo-600 text-xs px-1" title="แก้ไข">✏️</button>
-                            <button onclick="deleteLink('${chapterId}', '${sectionType}', ${idx})" class="text-slate-300 hover:text-rose-500 text-xs px-1" title="ลบ">✕</button>
+                            <a href="${directUrl}" target="_blank" class="text-[10px] text-indigo-600 hover:underline px-2 py-0.5 bg-indigo-50 rounded-lg font-medium">เปิดเต็มจอ</a>
+                            ${!isViewOnlyMode ? `
+                            <button onclick="openEditItemModal('${chapterId}', '${sectionType}', ${idx})" class="text-slate-400 hover:text-indigo-600 text-xs px-1.5 py-0.5" title="แก้ไข">✏️</button>
+                            <button onclick="deleteLink('${chapterId}', '${sectionType}', ${idx})" class="text-rose-500 hover:bg-rose-50 rounded text-xs px-1.5 py-0.5 font-bold" title="ลบ">✕</button>
+                            ` : ''}
                         </div>
                     </div>
                     <div onclick="showImageLightbox('${directUrl}', '${item.title}')" class="cursor-pointer overflow-hidden rounded-xl bg-slate-100 max-h-40 flex items-center justify-center border border-slate-100 group">
@@ -1025,19 +1154,20 @@
             if (mType === 'note') {
                 return `
                 <div data-index="${idx}" class="flex items-start justify-between p-3 rounded-2xl bg-amber-50/60 border border-amber-200/80 transition shadow-2xs gap-2">
-                    <span class="link-handle drag-handle text-slate-300 hover:text-amber-600 px-1 select-none text-xs mt-0.5">☰</span>
+                    ${!isViewOnlyMode ? '<span class="link-handle drag-handle text-slate-300 hover:text-amber-600 px-1 select-none text-xs mt-0.5">☰</span>' : ''}
                     <div class="flex-1 text-xs text-slate-800 font-medium leading-relaxed">
                         <span class="font-bold text-amber-800 mr-1">💡 โน้ต:</span>${item.title}
                     </div>
+                    ${!isViewOnlyMode ? `
                     <div class="flex items-center gap-1">
-                        <button onclick="openEditItemModal('${chapterId}', '${sectionType}', ${idx})" class="text-slate-400 hover:text-indigo-600 text-xs px-1" title="แก้ไข">✏️</button>
-                        <button onclick="deleteLink('${chapterId}', '${sectionType}', ${idx})" class="text-slate-300 hover:text-rose-500 text-xs px-1" title="ลบ">✕</button>
-                    </div>
+                        <button onclick="openEditItemModal('${chapterId}', '${sectionType}', ${idx})" class="text-slate-400 hover:text-indigo-600 text-xs px-1.5 py-0.5" title="แก้ไข">✏️</button>
+                        <button onclick="deleteLink('${chapterId}', '${sectionType}', ${idx})" class="text-rose-500 hover:bg-rose-50 rounded text-xs px-1.5 py-0.5 font-bold" title="ลบ">✕</button>
+                    </div>` : ''}
                 </div>
                 `;
             }
 
-            // 3. ไฟล์ PDF, PowerPoint, Word, ข้อสอบ (ปุ่มเปิดอ่าน / ดาวน์โหลดไฟล์)
+            // 3. ไฟล์ PDF, สไลด์, ข้อสอบ
             let badge = '📕 PDF';
             let badgeClass = 'bg-rose-50 text-rose-700 border-rose-100';
             if (mType === 'slide') {
@@ -1051,7 +1181,7 @@
             return `
             <div data-index="${idx}" class="p-3 rounded-2xl bg-white hover:bg-slate-50 border border-slate-200/80 transition shadow-2xs space-y-2">
                 <div class="flex items-center justify-between gap-1.5">
-                    <span class="link-handle drag-handle text-slate-300 hover:text-indigo-600 px-1 select-none text-xs">☰</span>
+                    ${!isViewOnlyMode ? '<span class="link-handle drag-handle text-slate-300 hover:text-indigo-600 px-1 select-none text-xs">☰</span>' : ''}
                     <div class="flex items-center gap-2 flex-1 truncate">
                         <span class="text-[10px] font-bold px-2 py-0.5 rounded-lg border ${badgeClass}">
                             ${badge}
@@ -1060,16 +1190,17 @@
                             ${item.title}
                         </span>
                     </div>
+                    ${!isViewOnlyMode ? `
                     <div class="flex items-center gap-1">
-                        <button onclick="openEditItemModal('${chapterId}', '${sectionType}', ${idx})" class="text-slate-400 hover:text-indigo-600 text-xs px-1" title="แก้ไข">✏️</button>
-                        <button onclick="deleteLink('${chapterId}', '${sectionType}', ${idx})" class="text-slate-300 hover:text-rose-500 text-xs px-1" title="ลบ">✕</button>
-                    </div>
+                        <button onclick="openEditItemModal('${chapterId}', '${sectionType}', ${idx})" class="text-slate-400 hover:text-indigo-600 text-xs px-1.5 py-0.5" title="แก้ไข">✏️</button>
+                        <button onclick="deleteLink('${chapterId}', '${sectionType}', ${idx})" class="text-rose-500 hover:bg-rose-50 rounded text-xs px-1.5 py-0.5 font-bold" title="ลบ">✕</button>
+                    </div>` : ''}
                 </div>
                 
                 <div class="flex items-center justify-end gap-2 pt-1 border-t border-slate-100 text-xs">
                     <a href="${directUrl}" target="_blank" 
                        class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold rounded-xl flex items-center gap-1.5 transition">
-                        <span>👁️</span> เปิดอ่านไฟล์
+                        <span>👁️</span> เปิดอ่าน / โหลดไฟล์
                     </a>
                 </div>
             </div>
@@ -1096,11 +1227,8 @@
                         <p class="text-4xl">📑</p>
                         <div>
                             <p class="text-slate-700 font-bold text-base">วิชานี้ยังไม่มีบทเรียน</p>
-                            <p class="text-xs text-slate-400 mt-1">กดปุ่ม "+ เพิ่มบทเรียนใหม่" ด้านบนเพื่อเริ่มสร้างบทเรียน (เช่น บทที่ 1, บทที่ 2)</p>
+                            ${!isViewOnlyMode ? '<p class="text-xs text-slate-400 mt-1">กดปุ่ม "+ เพิ่มบทเรียน" ด้านบนเพื่อเริ่มสร้างบทเรียน</p>' : ''}
                         </div>
-                        <button onclick="openAddChapterModal()" class="text-xs bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-4 py-2 rounded-xl shadow-xs">
-                            ➕ สร้างบทแรกเลย
-                        </button>
                     </div>
                 `;
                 return;
@@ -1115,7 +1243,7 @@
                     <!-- หัวแถบบทเรียน -->
                     <div class="p-4 bg-slate-50/80 border-b border-slate-200/80 flex flex-wrap justify-between items-center gap-2">
                         <div class="flex items-center gap-2.5 flex-1">
-                            <span class="chapter-handle drag-handle text-slate-400 hover:text-indigo-600 px-1 py-0.5 select-none text-lg">☰</span>
+                            ${!isViewOnlyMode ? '<span class="chapter-handle drag-handle text-slate-400 hover:text-indigo-600 px-1 py-0.5 select-none text-lg">☰</span>' : ''}
                             <span class="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-700 font-bold flex items-center justify-center text-xs">
                                 ${chapIdx + 1}
                             </span>
@@ -1123,10 +1251,11 @@
                                 ${chap.name}
                             </h3>
                         </div>
+                        ${!isViewOnlyMode ? `
                         <div class="flex items-center gap-1.5">
                             <button onclick="openAddLinkModalToChapter('${chap.id}', '${chap.name}')" 
                                     class="text-xs bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-3.5 py-1.5 rounded-xl flex items-center gap-1.5 shadow-2xs transition">
-                                <span>➕</span> เพิ่มไฟล์เข้าบทนี้
+                                <span>➕</span> เพิ่มไฟล์ในบทนี้
                             </button>
                             <button onclick="editChapter('${chap.id}')" 
                                     class="text-xs text-slate-500 hover:text-indigo-600 hover:bg-slate-200/60 p-1.5 rounded-lg transition" title="แก้ไขชื่อบท">
@@ -1136,7 +1265,7 @@
                                     class="text-xs text-slate-400 hover:text-rose-500 hover:bg-rose-50 p-1.5 rounded-lg transition" title="ลบบท">
                                 🗑️
                             </button>
-                        </div>
+                        </div>` : ''}
                     </div>
 
                     <!-- เนื้อหาภายในบท: ไฟล์สรุป & ข้อสอบ -->
@@ -1167,51 +1296,51 @@
                 `;
             }).join('');
 
-            // Sortable บทเรียน
-            new Sortable(container, {
-                handle: '.chapter-handle',
-                animation: 200,
-                ghostClass: 'sortable-ghost',
-                onEnd: function () {
-                    const orderedIds = Array.from(container.children).map(c => c.getAttribute('data-id'));
-                    sub.chapters.sort((a, b) => orderedIds.indexOf(a.id) - orderedIds.indexOf(b.id));
-                    saveData();
-                    renderChaptersView();
-                }
-            });
+            if (!isViewOnlyMode) {
+                new Sortable(container, {
+                    handle: '.chapter-handle',
+                    animation: 200,
+                    ghostClass: 'sortable-ghost',
+                    onEnd: function () {
+                        const orderedIds = Array.from(container.children).map(c => c.getAttribute('data-id'));
+                        sub.chapters.sort((a, b) => orderedIds.indexOf(a.id) - orderedIds.indexOf(b.id));
+                        saveData();
+                        renderChaptersView();
+                    }
+                });
 
-            // Sortable ลิงก์ในแต่ละบท
-            chapters.forEach(chap => {
-                const sumList = document.getElementById(`summaries_${chap.id}`);
-                if (sumList) {
-                    new Sortable(sumList, {
-                        handle: '.link-handle',
-                        animation: 150,
-                        ghostClass: 'sortable-ghost',
-                        onEnd: function () {
-                            const newIndices = Array.from(sumList.children).map(c => parseInt(c.getAttribute('data-index')));
-                            chap.summaries = newIndices.map(i => chap.summaries[i]).filter(Boolean);
-                            saveData();
-                            renderChaptersView();
-                        }
-                    });
-                }
+                chapters.forEach(chap => {
+                    const sumList = document.getElementById(`summaries_${chap.id}`);
+                    if (sumList) {
+                        new Sortable(sumList, {
+                            handle: '.link-handle',
+                            animation: 150,
+                            ghostClass: 'sortable-ghost',
+                            onEnd: function () {
+                                const newIndices = Array.from(sumList.children).map(c => parseInt(c.getAttribute('data-index')));
+                                chap.summaries = newIndices.map(i => chap.summaries[i]).filter(Boolean);
+                                saveData();
+                                renderChaptersView();
+                            }
+                        });
+                    }
 
-                const examList = document.getElementById(`exams_${chap.id}`);
-                if (examList) {
-                    new Sortable(examList, {
-                        handle: '.link-handle',
-                        animation: 150,
-                        ghostClass: 'sortable-ghost',
-                        onEnd: function () {
-                            const newIndices = Array.from(examList.children).map(c => parseInt(c.getAttribute('data-index')));
-                            chap.exams = newIndices.map(i => chap.exams[i]).filter(Boolean);
-                            saveData();
-                            renderChaptersView();
-                        }
-                    });
-                }
-            });
+                    const examList = document.getElementById(`exams_${chap.id}`);
+                    if (examList) {
+                        new Sortable(examList, {
+                            handle: '.link-handle',
+                            animation: 150,
+                            ghostClass: 'sortable-ghost',
+                            onEnd: function () {
+                                const newIndices = Array.from(examList.children).map(c => parseInt(c.getAttribute('data-index')));
+                                chap.exams = newIndices.map(i => chap.exams[i]).filter(Boolean);
+                                saveData();
+                                renderChaptersView();
+                            }
+                        });
+                    }
+                });
+            }
         }
 
         loadDataFromGoogleDrive();
