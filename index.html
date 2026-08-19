@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+ช<!DOCTYPE html>
 <html lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>คลังสรุป & ข้อสอบรายวิชา (v6.4.1)</title>
+    <title>คลังสรุป & ข้อสอบรายวิชา (v6.5.0)</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -39,8 +39,8 @@
                     <div>
                         <div class="flex items-center gap-2">
                             <h1 class="text-base md:text-lg font-bold text-slate-900 leading-tight">คลังแฟ้มเอกสารการเรียน</h1>
-                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 border border-slate-200">
-                                v6.4.1
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200" title="เวอร์ชัน">
+                                v6.5.0
                             </span>
                             <span id="roleBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
                                 👤 เจ้าของคลัง
@@ -146,7 +146,7 @@
 
     <!-- Footer บอกเวอร์ชัน -->
     <footer class="text-center py-6 text-xs text-slate-400 border-t border-slate-200/60 mt-12 bg-white">
-        <p>คลังแฟ้มเอกสารการเรียน • Version <span class="font-semibold text-slate-600">6.4.1</span></p>
+        <p>คลังแฟ้มเอกสารการเรียน • Version <span class="font-semibold text-slate-600">6.5.0</span></p>
         <p class="text-[10px] text-slate-400 mt-0.5">เชื่อมต่อกับ Google Drive & Cloud Database</p>
     </footer>
 
@@ -409,8 +409,10 @@
                 currentSelectedYear = lockedYear;
             }
 
+            // แสดงผลหน้าจอทันที
             render();
 
+            // ซิงก์ข้อมูลกับ Cloud
             try {
                 updateSyncStatus('syncing', 'กำลังซิงก์ Google Drive...');
                 const res = await fetch(GOOGLE_SCRIPT_URL);
@@ -430,6 +432,8 @@
                         currentSelectedYear = foundSub.category;
                         currentSelectedSubjectId = foundSub.id;
                     }
+                } else if (lockedYear) {
+                    currentSelectedYear = lockedYear;
                 }
 
                 render();
@@ -980,7 +984,7 @@
             const btnShareYear = document.getElementById('btnShareYear');
             const btnShareSubjectInside = document.getElementById('btnShareSubjectInside');
 
-            // 1. จัดการปุ่มในโหมดอ่านของน้องรหัส (View Only Mode)
+            // 1. ซ่อนปุ่มต่างๆ ในโหมดอ่านของน้องรหัส
             if (isViewOnlyMode) {
                 if (btnQuickShare) btnQuickShare.classList.add('hidden');
                 if (btnShareYear) btnShareYear.classList.add('hidden');
@@ -996,12 +1000,16 @@
                 if (btnShareSubjectInside) btnShareSubjectInside.classList.remove('hidden');
             }
 
-            // 2. ควบคุมการแสดงผลของแต่ละหน้าจอ (Toggle View Display)
+            // 2. ควบคุมการแสดงผลของหน้าจอทั้ง 3 ส่วนอย่างถูกต้อง
+            const viewYears = document.getElementById('viewYears');
+            const viewSubjects = document.getElementById('viewSubjects');
+            const viewInsideSubject = document.getElementById('viewInsideSubject');
+
             if (!currentSelectedYear && !currentSelectedSubjectId) {
                 // หน้าหลัก (Level 1: ชั้นปี)
-                document.getElementById('viewYears').classList.remove('hidden');
-                document.getElementById('viewSubjects').classList.add('hidden');
-                document.getElementById('viewInsideSubject').classList.add('hidden');
+                viewYears.classList.remove('hidden');
+                viewSubjects.classList.add('hidden');
+                viewInsideSubject.classList.add('hidden');
 
                 btnContainer.innerHTML = isViewOnlyMode ? '' : `
                     <button onclick="openModalAddCategory()" class="text-xs md:text-sm bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-4 py-2 rounded-xl flex items-center gap-1.5 shadow-sm transition">
@@ -1013,10 +1021,10 @@
                 `;
                 renderYearsGrid();
             } else if (currentSelectedYear && !currentSelectedSubjectId) {
-                // หน้ารวมวิชาของปีนั้น (Level 2: วิชา)
-                document.getElementById('viewYears').classList.add('hidden');
-                document.getElementById('viewSubjects').classList.remove('hidden');
-                document.getElementById('viewInsideSubject').classList.add('hidden');
+                // หน้ารวมวิชา (Level 2: วิชา)
+                viewYears.classList.add('hidden');
+                viewSubjects.classList.remove('hidden');
+                viewInsideSubject.classList.add('hidden');
 
                 btnContainer.innerHTML = (lockedYear || isViewOnlyMode) ? '' : `
                     <button onclick="goToYearsView()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium px-3 py-2 rounded-xl transition">
@@ -1039,9 +1047,9 @@
                 renderSubjectsGrid();
             } else if (currentSelectedSubjectId) {
                 // หน้าบทเรียนในวิชา (Level 3: บทเรียน)
-                document.getElementById('viewYears').classList.add('hidden');
-                document.getElementById('viewSubjects').classList.add('hidden');
-                document.getElementById('viewInsideSubject').classList.remove('hidden');
+                viewYears.classList.add('hidden');
+                viewSubjects.classList.add('hidden');
+                viewInsideSubject.classList.remove('hidden');
 
                 const currentSub = subjects.find(s => s.id === currentSelectedSubjectId);
                 
@@ -1081,7 +1089,7 @@
             const grid = document.getElementById('yearsGrid');
 
             grid.innerHTML = categories.map((cat) => {
-                const yearSubjects = subjects.filter(s => s.category === cat);
+                const yearSubjects = subjects.filter(s => (s.category || '').trim() === cat.trim());
                 let totalFiles = 0;
                 yearSubjects.forEach(s => {
                     (s.chapters || []).forEach(ch => {
@@ -1140,7 +1148,7 @@
         // Render วิชา (Level 2)
         function renderSubjectsGrid() {
             document.getElementById('currentYearTitle').innerText = `🎓 ${currentSelectedYear}`;
-            const yearSubs = subjects.filter(s => s.category === currentSelectedYear);
+            const yearSubs = subjects.filter(s => (s.category || '').trim() === (currentSelectedYear || '').trim());
             document.getElementById('currentYearSubtitle').innerText = `มีทั้งหมด ${yearSubs.length} วิชาในชั้นปีนี้`;
 
             const grid = document.getElementById('subjectsGrid');
@@ -1206,7 +1214,7 @@
                     ghostClass: 'sortable-ghost',
                     onEnd: function () {
                         const orderedIds = Array.from(grid.children).map(c => c.getAttribute('data-id'));
-                        const otherSubs = subjects.filter(s => s.category !== currentSelectedYear);
+                        const otherSubs = subjects.filter(s => (s.category || '').trim() !== (currentSelectedYear || '').trim());
                         const currentYearSubsSorted = orderedIds.map(id => subjects.find(s => s.id === id)).filter(Boolean);
                         subjects = [...currentYearSubsSorted, ...otherSubs];
                         saveData();
