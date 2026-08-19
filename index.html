@@ -58,9 +58,9 @@
 
         <!-- แถบนำทาง (Breadcrumb Navigation) -->
         <nav class="bg-white px-4 py-2.5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between text-xs md:text-sm font-medium text-slate-600 overflow-x-auto scrollbar-none" id="breadcrumbNavContainer">
-            <div class="flex items-center gap-2" id="breadcrumbNav">
+            <div class="flex items-center gap-2 shrink-0" id="breadcrumbNav">
             </div>
-            <button id="btnQuickShare" onclick="shareCurrentPage()" class="text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold px-3 py-1.5 rounded-xl flex items-center gap-1 transition shrink-0 ml-2">
+            <button id="btnQuickShare" onclick="shareCurrentPage()" class="text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold px-3 py-1.5 rounded-xl flex items-center gap-1 transition shrink-0 ml-2 shadow-2xs">
                 🔗 แชร์หน้านี้
             </button>
         </nav>
@@ -149,10 +149,9 @@
             </div>
             <h3 class="text-base font-bold text-slate-900">คัดลอกลิงก์แชร์แล้ว!</h3>
             <p id="shareDetailsText" class="text-xs text-slate-500 leading-relaxed"></p>
-            <div class="p-2.5 bg-slate-50 rounded-xl text-xs text-slate-600 font-mono break-all border border-slate-200" id="shareUrlDisplay">
-            </div>
+            <input type="text" readonly id="shareUrlInput" onclick="this.select()" class="w-full p-2.5 bg-slate-50 rounded-xl text-xs text-slate-600 font-mono border border-slate-200 text-center select-all">
             <button onclick="closeShareModal()" class="w-full py-2.5 bg-indigo-600 text-white text-sm font-medium rounded-xl hover:bg-indigo-700 shadow-sm mt-2">
-                เข้าใจแล้ว (นำไปวางใน LINE ได้เลย)
+                เข้าใจแล้ว (นำไปวางส่งใน LINE ได้เลย)
             </button>
         </div>
     </div>
@@ -223,7 +222,7 @@
         </div>
     </div>
 
-    <!-- Modal: เพิ่ม & แก้ไข ไฟล์/เอกสาร (พร้อมระบบอัปโหลดจริงขึ้น Google Drive) -->
+    <!-- Modal: เพิ่ม & แก้ไข ไฟล์/เอกสาร -->
     <div id="modalItemForm" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs hidden items-center justify-center p-4 z-50">
         <div class="bg-white p-6 rounded-3xl max-w-md w-full shadow-2xl space-y-4">
             <div class="flex justify-between items-center border-b border-slate-100 pb-3">
@@ -246,7 +245,6 @@
                     </select>
                 </div>
 
-                <!-- กล่องเลือกไฟล์จาก iPad -->
                 <div id="fileUploadHelperBox" class="p-3 bg-indigo-50/50 rounded-2xl border border-indigo-100 space-y-2">
                     <div class="flex items-center justify-between">
                         <label class="block text-[11px] font-bold text-indigo-900">📁 เลือกไฟล์จากเครื่อง iPad / แกลเลอรี:</label>
@@ -433,16 +431,29 @@
             }
         }
 
-        // --- ระบบแชร์ ---
-        function copyToClipboard(url, message) {
-            navigator.clipboard.writeText(url).then(() => {
-                document.getElementById('shareDetailsText').innerText = message;
-                document.getElementById('shareUrlDisplay').innerText = url;
-                document.getElementById('modalShareNotification').classList.remove('hidden');
-                document.getElementById('modalShareNotification').classList.add('flex');
-            }).catch(() => {
-                prompt("คัดลอกลิงก์แชร์นี้ได้เลยครับ:", url);
-            });
+        // --- ระบบแชร์แบบ Native & Fallback รองรับ Safari iPad 100% ---
+        async function triggerShare(title, text, url) {
+            if (navigator.share) {
+                try {
+                    await navigator.share({ title: title, text: text, url: url });
+                    return;
+                } catch (err) {
+                    // ผู้ใช้กดยกเลิก หรือไม่รองรับ Web Share ให้ fallback ไป modal
+                }
+            }
+            
+            // Fallback: แสดง Modal และคัดลอกลง Clipboard
+            document.getElementById('shareDetailsText').innerText = text;
+            const input = document.getElementById('shareUrlInput');
+            input.value = url;
+            
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(url).catch(() => {});
+            }
+
+            document.getElementById('modalShareNotification').classList.remove('hidden');
+            document.getElementById('modalShareNotification').classList.add('flex');
+            setTimeout(() => input.select(), 100);
         }
 
         function closeShareModal() {
@@ -453,7 +464,11 @@
         function shareYearFolder() {
             const baseUrl = window.location.origin + window.location.pathname;
             const shareUrl = `${baseUrl}?year=${encodeURIComponent(currentSelectedYear)}&mode=view`;
-            copyToClipboard(shareUrl, `ลิงก์แฟ้มโฟลเดอร์ "🎓 ${currentSelectedYear}" (โหมดอ่านและโหลดไฟล์ สำหรับส่งต่อให้น้องรหัส)`);
+            triggerShare(
+                `คลังสรุปและข้อสอบ - ${currentSelectedYear}`,
+                `📚 แฟ้มเอกสารและข้อสอบของ ${currentSelectedYear} เข้าดูและดาวน์โหลดได้ที่ลิงก์นี้ครับ:`,
+                shareUrl
+            );
         }
 
         function shareSubjectFolder() {
@@ -461,7 +476,11 @@
             if (!sub) return;
             const baseUrl = window.location.origin + window.location.pathname;
             const shareUrl = `${baseUrl}?subject=${encodeURIComponent(sub.id)}&mode=view`;
-            copyToClipboard(shareUrl, `ลิงก์วิชา "📚 ${sub.name} (${sub.category})" (โหมดอ่านและโหลดไฟล์ สำหรับส่งต่อให้น้องรหัส)`);
+            triggerShare(
+                `วิชา ${sub.name} - ${sub.category}`,
+                `📚 สรุป & ข้อสอบวิชา ${sub.name} (${sub.category}) เข้าดูและดาวน์โหลดได้ที่ลิงก์นี้ครับ:`,
+                shareUrl
+            );
         }
 
         function shareCurrentPage() {
@@ -472,7 +491,11 @@
             } else {
                 const baseUrl = window.location.origin + window.location.pathname;
                 const shareUrl = `${baseUrl}?mode=view`;
-                copyToClipboard(shareUrl, `ลิงก์คลังแฟ้มการเรียนทั้งหมด (โหมดอ่านและโหลดไฟล์ สำหรับส่งต่อให้น้องรหัส)`);
+                triggerShare(
+                    'คลังแฟ้มเอกสารการเรียน',
+                    '📚 คลังสรุปและข้อสอบทั้งหมด เข้าดูและดาวน์โหลดได้ที่นี่:',
+                    shareUrl
+                );
             }
         }
 
@@ -832,7 +855,7 @@
 
             const btnSubmit = document.getElementById('btnSubmitItemForm');
 
-            // หากมีการเลือกไฟล์จากเครื่อง iPad ให้อัปโหลดขึ้น Google Drive ก่อน
+            // อัปโหลดไฟล์ขึ้น Drive เมื่อมีการเลือกไฟล์
             if (currentSelectedFileBase64 && type !== 'note') {
                 btnSubmit.disabled = true;
                 btnSubmit.innerHTML = `<span class="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span> กำลังอัปโหลดขึ้น Drive...`;
@@ -854,7 +877,6 @@
                     }
                 } catch (err) {
                     console.error("Upload error:", err);
-                    // กรณี no-cors fallback
                 }
 
                 btnSubmit.disabled = false;
@@ -900,7 +922,7 @@
             render();
         }
 
-        // ฟังก์ชันลบไฟล์เดี่ยว
+        // ลบไฟล์เดี่ยว
         function deleteLink(chapterId, sectionType, idx) {
             if (confirm('คุณต้องการลบไฟล์นี้ใช่หรือไม่?')) {
                 const subject = subjects.find(s => s.id === currentSelectedSubjectId);
