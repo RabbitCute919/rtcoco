@@ -7,7 +7,7 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- SortableJS สำหรับลากวางด้วยนิ้วบน iPad/มือถือ -->
+    <!-- SortableJS สำหรับลากสลับลำดับ -->
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
         body { font-family: 'Prompt', sans-serif; }
@@ -35,7 +35,7 @@
                 <span class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span> กำลังซิงก์กับ Google Drive...
             </div>
             <h1 class="text-2xl md:text-4xl font-bold text-indigo-700">📚 คลังรวมสรุป & ข้อสอบ</h1>
-            <p class="text-slate-500 text-xs md:text-sm mt-1">แตะลากเพื่อจัดลำดับ แก้ไขชื่อและสัดส่วนได้ตลอดเวลา</p>
+            <p class="text-slate-500 text-xs md:text-sm mt-1">คลังจัดเก็บเนื้อหาทบทวน แยกตามชั้นปีและรายวิชา</p>
         </header>
 
         <!-- ฟอร์มเพิ่มวิชาใหม่ -->
@@ -45,15 +45,17 @@
                     <span>➕</span> เพิ่มวิชาใหม่เข้าคลัง
                 </h2>
                 <button onclick="openCategoryModal()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium px-3 py-1.5 rounded-lg flex items-center gap-1 transition">
-                    ⚙️ จัดการ/จัดลำดับสัดส่วน
+                    ⚙️ จัดการ/แก้ไขชื่อชั้นปี-หมวดหมู่
                 </button>
             </div>
             
             <div class="flex flex-col md:flex-row gap-2">
-                <select id="newSubjectCategory" class="px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 text-sm font-medium md:w-52">
+                <!-- Dropdown ชั้นปี/หมวดหมู่ -->
+                <select id="newSubjectCategory" class="px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 text-sm font-medium md:w-56">
                 </select>
 
-                <input id="newSubjectInput" type="text" placeholder="พิมพ์ชื่อหัวข้อ..." 
+                <!-- ชื่อวิชา -->
+                <input id="newSubjectInput" type="text" placeholder="พิมพ์ชื่อวิชาหรือหัวข้อ..." 
                        class="flex-1 px-4 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
                 
                 <button onclick="addSubject()" 
@@ -63,27 +65,27 @@
             </div>
         </div>
 
-        <!-- แถบกรองสัดส่วน (Filter Tabs) -->
+        <!-- แถบกรองสัดส่วน (Filter Tabs แยกชั้นปี) -->
         <div class="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none" id="categoryFilterBar">
         </div>
 
-        <!-- รายการวิชา (รองรับ Drag & Drop) -->
+        <!-- รายการวิชา -->
         <div id="subjectList" class="space-y-4">
             <div class="text-center py-12 text-slate-400">กำลังดาวน์โหลดข้อมูลจาก Google Drive...</div>
         </div>
 
     </div>
 
-    <!-- Modal 1: จัดการสัดส่วน (Drag & Drop) -->
+    <!-- Modal 1: จัดการ & แก้ไขชื่อหมวดหมู่/ชั้นปี -->
     <div id="categoryModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
         <div class="bg-white p-5 md:p-6 rounded-2xl max-w-md w-full shadow-xl space-y-4">
             <div class="flex justify-between items-center border-b border-slate-100 pb-3">
-                <h3 class="text-base font-bold text-slate-800">⚙️ จัดการ & จัดลำดับสัดส่วน</h3>
+                <h3 class="text-base font-bold text-slate-800">⚙️ จัดการ & แก้ไขชื่อชั้นปี/หมวดหมู่</h3>
                 <button onclick="closeCategoryModal()" class="text-slate-400 hover:text-slate-600 text-lg">✕</button>
             </div>
             
             <div class="flex gap-2">
-                <input id="customCategoryInput" type="text" placeholder="ชื่อสัดส่วนใหม่..." 
+                <input id="customCategoryInput" type="text" placeholder="เพิ่มหมวดใหม่ เช่น ปี 1 เทอม 1..." 
                        class="flex-1 px-3 py-2 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 <button onclick="addNewCategory()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition">
                     เพิ่ม
@@ -91,7 +93,7 @@
             </div>
 
             <p class="text-[11px] text-slate-400 flex items-center gap-1">
-                <span>✋</span> แตะค้างที่แถบ <b>☰</b> แล้วลากเพื่อสลับลำดับได้ทันที
+                <span>💡</span> แตะ <b>✏️</b> เพื่อแก้ชื่อ หรือแตะค้างที่ <b>☰</b> เพื่อลากสลับลำดับ
             </p>
 
             <div class="space-y-1.5 max-h-64 overflow-y-auto pr-1" id="categoryManagerList">
@@ -124,7 +126,7 @@
 
             <div>
                 <label class="block text-xs font-semibold text-slate-600 mb-1">ชื่อลิงก์ / คำอธิบาย</label>
-                <input id="modalLinkTitle" type="text" placeholder="เช่น สรุปบทที่ 1, ตะลุยโจทย์ปลายภาค" 
+                <input id="modalLinkTitle" type="text" placeholder="เช่น สรุปสอบย่อย 4 บท, แบบฝึกหัดเตรียมสอบ" 
                        class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
             </div>
 
@@ -141,17 +143,17 @@
         </div>
     </div>
 
-    <!-- Modal 3: แก้ไขชื่อวิชา และสัดส่วน (Edit Subject Modal) -->
+    <!-- Modal 3: แก้ไขชื่อวิชา และสัดส่วน -->
     <div id="editSubjectModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
         <div class="bg-white p-6 rounded-2xl max-w-md w-full shadow-xl space-y-4">
             <div class="flex justify-between items-center border-b border-slate-100 pb-3">
-                <h3 class="text-base font-bold text-slate-800">✏️ แก้ไขชื่อวิชา & สัดส่วน</h3>
+                <h3 class="text-base font-bold text-slate-800">✏️ แก้ไขชื่อวิชา & ชั้นปี</h3>
                 <button onclick="closeEditSubjectModal()" class="text-slate-400 hover:text-slate-600 text-lg">✕</button>
             </div>
             <input type="hidden" id="editSubjectId">
             
             <div>
-                <label class="block text-xs font-semibold text-slate-600 mb-1">สัดส่วน / หมวดหมู่</label>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">ชั้นปี / หมวดหมู่</label>
                 <select id="editSubjectCategory" class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm bg-slate-50">
                 </select>
             </div>
@@ -172,7 +174,8 @@
     <script>
         const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyY7M6fdlwe0ed5ULzGasGz55jFfohm9JhtA08lf4ZlygUoV61czcMuTWAcmm6fbATO/exec";
 
-        let categories = ['สรีรวิทยา', 'พยาธิวิทยา', 'เทคโนโลยี', 'ชีวะรังสีเทคนิค', 'ฟิสิกส์รังสี'];
+        // โครงสร้างเริ่มต้นตามชั้นปี
+        let categories = ['ปี 1 เทอม 1', 'ปี 1 เทอม 2', 'ปี 2', 'ปี 3', 'ปี 4', 'วิชาทั่วไป'];
         let subjects = [];
         let currentFilter = 'ทั้งหมด';
 
@@ -196,7 +199,7 @@
                 const res = await fetch(GOOGLE_SCRIPT_URL);
                 const data = await res.json();
                 
-                if (data.categories) categories = data.categories;
+                if (data.categories && data.categories.length > 0) categories = data.categories;
                 if (data.subjects) subjects = data.subjects;
 
                 updateSyncStatus('success', 'เชื่อมต่อกับ Google Drive สำเร็จ');
@@ -229,7 +232,7 @@
             }
         }
 
-        // --- จัดการสัดส่วน ---
+        // --- จัดการ & แก้ไขชื่อหมวดหมู่ ---
         function openCategoryModal() {
             document.getElementById('customCategoryInput').value = '';
             renderCategoryManagerList();
@@ -248,7 +251,7 @@
             const name = input.value.trim();
             if (!name) return;
             if (categories.includes(name)) {
-                alert('มีสัดส่วนนี้อยู่แล้ว');
+                alert('มีชื่อหมวดหมู่นี้อยู่แล้ว');
                 return;
             }
             categories.push(name);
@@ -257,9 +260,43 @@
             renderCategoryManagerList();
         }
 
+        function editCategoryName(oldName) {
+            const newName = prompt(`แก้ไขชื่อหมวดหมู่ "${oldName}" เป็น:`, oldName);
+            if (!newName || newName.trim() === "" || newName.trim() === oldName) return;
+
+            const trimmedName = newName.trim();
+            if (categories.includes(trimmedName)) {
+                alert('มีชื่อหมวดหมู่นี้อยู่แล้ว กรุณาใช้ชื่ออื่น');
+                return;
+            }
+
+            const index = categories.indexOf(oldName);
+            if (index !== -1) {
+                categories[index] = trimmedName;
+            }
+
+            subjects.forEach(sub => {
+                if (sub.category === oldName) {
+                    sub.category = trimmedName;
+                }
+            });
+
+            if (currentFilter === oldName) {
+                currentFilter = trimmedName;
+            }
+
+            saveData();
+            renderCategoryManagerList();
+        }
+
         function deleteCategory(catName) {
-            if (confirm(`ต้องการลบสัดส่วน "${catName}" ใช่หรือไม่?`)) {
+            if (confirm(`ต้องการลบหมวดหมู่ "${catName}" ใช่หรือไม่?\n(วิชาในหมวดนี้จะยังคงอยู่แต่จะถูกย้ายไปหมวดแรก)`)) {
                 categories = categories.filter(c => c !== catName);
+                subjects.forEach(sub => {
+                    if (sub.category === catName) {
+                        sub.category = categories[0] || 'ทั่วไป';
+                    }
+                });
                 if (currentFilter === catName) currentFilter = 'ทั้งหมด';
                 saveData();
                 renderCategoryManagerList();
@@ -269,7 +306,7 @@
         function renderCategoryManagerList() {
             const list = document.getElementById('categoryManagerList');
             if (categories.length === 0) {
-                list.innerHTML = `<p class="text-xs text-slate-400 italic py-2 text-center">ยังไม่มีสัดส่วน เพิ่มด้านบนได้เลย</p>`;
+                list.innerHTML = `<p class="text-xs text-slate-400 italic py-2 text-center">ยังไม่มีหมวดหมู่ เพิ่มด้านบนได้เลย</p>`;
                 return;
             }
             list.innerHTML = categories.map((cat) => `
@@ -278,7 +315,10 @@
                         <span class="drag-handle text-slate-400 hover:text-indigo-600 px-1 py-0.5 select-none text-base">☰</span>
                         <span class="font-medium text-slate-700 truncate">🏷️ ${cat}</span>
                     </div>
-                    <button onclick="deleteCategory('${cat}')" class="text-rose-500 hover:bg-rose-50 px-2 py-1 rounded text-xs font-medium">ลบ</button>
+                    <div class="flex items-center gap-1">
+                        <button onclick="editCategoryName('${cat}')" class="text-slate-500 hover:bg-slate-200 p-1.5 rounded-lg text-xs" title="แก้ไขชื่อ">✏️</button>
+                        <button onclick="deleteCategory('${cat}')" class="text-rose-500 hover:bg-rose-50 px-2 py-1 rounded text-xs font-medium">ลบ</button>
+                    </div>
                 </div>
             `).join('');
 
@@ -294,7 +334,7 @@
             });
         }
 
-        // --- แก้ไขวิชา (Edit Subject) ---
+        // --- แก้ไขวิชา ---
         function openEditSubjectModal(subjectId) {
             const subject = subjects.find(s => s.id === subjectId);
             if (!subject) return;
@@ -428,7 +468,7 @@
             render();
         }
 
-        // --- Render หน้าจอ & ผูกระบบ Drag & Drop ---
+        // --- Render หน้าจอ & ผูก Sortable ---
         function render() {
             const catSelect = document.getElementById('newSubjectCategory');
             if (categories.length === 0) {
@@ -462,7 +502,7 @@
                 container.innerHTML = `
                     <div class="text-center py-12 bg-white rounded-2xl border border-dashed border-slate-300 p-8">
                         <p class="text-3xl mb-2">📂</p>
-                        <p class="text-slate-500 font-medium">ยังไม่มีรายวิชาในสัดส่วนนี้</p>
+                        <p class="text-slate-500 font-medium">ยังไม่มีรายวิชาในหมวดหมู่นี้</p>
                     </div>
                 `;
                 return;
@@ -470,7 +510,7 @@
 
             container.innerHTML = filteredSubjects.map((sub) => `
                 <div data-id="${sub.id}" class="subject-card bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden transition hover:shadow-md">
-                    <!-- หัวการ์ดวิชา (แตะชื่อเพื่อแก้ไขได้) -->
+                    <!-- หัวการ์ดวิชา -->
                     <div class="p-3 md:p-4 bg-slate-50/80 border-b border-slate-200 flex flex-wrap justify-between items-center gap-2">
                         <div class="flex items-center gap-2 flex-1 cursor-pointer" onclick="openEditSubjectModal('${sub.id}')">
                             <span class="subject-handle drag-handle text-slate-400 hover:text-indigo-600 px-1 py-0.5 select-none text-lg" onclick="event.stopPropagation()">☰</span>
@@ -497,7 +537,7 @@
                         </div>
                     </div>
                     
-                    <!-- ส่วนสรุป & ข้อสอบ -->
+                    <!-- สรุป & ข้อสอบ -->
                     <div class="p-3 md:p-4 grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                         <!-- สรุป -->
                         <div class="space-y-2 bg-emerald-50/40 p-3 rounded-xl border border-emerald-100/70">
