@@ -314,8 +314,9 @@
     <script>
         const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyY7M6fdlwe0ed5ULzGasGz55jFfohm9JhtA08lf4ZlygUoV61czcMuTWAcmm6fbATO/exec";
 
-        let categories = ['ปี 1', 'ปี 2', 'ปี 3', 'ปี 4', 'วิชาทั่วไป'];
-        let subjects = [];
+        // โครงสร้างข้อมูลตั้งต้น
+        let categories = JSON.parse(localStorage.getItem('study_vault_categories')) || ['ปี 1', 'ปี 2', 'ปี 3', 'ปี 4', 'วิชาทั่วไป'];
+        let subjects = JSON.parse(localStorage.getItem('study_vault_v5')) || [];
 
         let currentSelectedYear = null;
         let currentSelectedSubjectId = null;
@@ -328,6 +329,7 @@
 
         function updateSyncStatus(status, text) {
             const el = document.getElementById('syncStatus');
+            if (!el) return;
             if (status === 'syncing') {
                 el.className = "flex items-center gap-1.5 text-[11px] text-amber-600 font-medium";
                 el.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span> ${text}`;
@@ -335,8 +337,8 @@
                 el.className = "flex items-center gap-1.5 text-[11px] text-emerald-600 font-medium";
                 el.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500"></span> ${text}`;
             } else {
-                el.className = "flex items-center gap-1.5 text-[11px] text-rose-600 font-medium";
-                el.innerHTML = `<span class="w-2 h-2 rounded-full bg-rose-500"></span> ${text}`;
+                el.className = "flex items-center gap-1.5 text-[11px] text-slate-500 font-medium";
+                el.innerHTML = `<span>💾</span> ${text}`;
             }
         }
 
@@ -369,48 +371,51 @@
             });
         }
 
-        // โหลดข้อมูลผ่าน JSONP (เสถียร 100% บน Safari iPad)
-        function loadDataFromGoogleDrive() {
+        // โหลดข้อมูลแบบ Background Non-Blocking (ไม่ให้หน้าจอขาวค้าง)
+        async function loadDataFromGoogleDrive() {
             if (isViewOnlyMode) {
-                document.getElementById('roleBadge').className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800 border border-indigo-200";
-                document.getElementById('roleBadge').innerText = "📖 โหมดอ่าน & โหลดไฟล์";
+                const badge = document.getElementById('roleBadge');
+                if (badge) {
+                    badge.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800 border border-indigo-200";
+                    badge.innerText = "📖 โหมดอ่าน & โหลดไฟล์";
+                }
             }
 
-            updateSyncStatus('syncing', 'กำลังโหลดข้อมูลจาก Google Drive...');
+            // ตรวจสอบพารามิเตอร์ URL
+            const targetYear = urlParams.get('year');
+            const targetSub = urlParams.get('subject');
 
-            window.handleServerResponse = function(data) {
+            if (targetSub) {
+                const foundSub = subjects.find(s => s.id === targetSub || s.name === targetSub);
+                if (foundSub) {
+                    currentSelectedYear = foundSub.category;
+                    currentSelectedSubjectId = foundSub.id;
+                }
+            } else if (targetYear && categories.includes(targetYear)) {
+                currentSelectedYear = targetYear;
+            }
+
+            // แสดงผลหน้าจอทันที ไม่ต้องรอเน็ต
+            render();
+
+            // ดึงข้อมูลอัปเดตจาก Google Drive
+            try {
+                updateSyncStatus('syncing', 'กำลังซิงก์ Google Drive...');
+                const res = await fetch(GOOGLE_SCRIPT_URL);
+                const data = await res.json();
+                
                 if (data.categories && data.categories.length > 0) categories = data.categories;
                 if (data.subjects) subjects = normalizeSubjects(data.subjects);
 
+                localStorage.setItem('study_vault_categories', JSON.stringify(categories));
+                localStorage.setItem('study_vault_v5', JSON.stringify(subjects));
+
                 updateSyncStatus('success', 'เชื่อมต่อข้อมูลสำเร็จ');
-
-                const targetYear = urlParams.get('year');
-                const targetSub = urlParams.get('subject');
-
-                if (targetSub) {
-                    const foundSub = subjects.find(s => s.id === targetSub || s.name === targetSub);
-                    if (foundSub) {
-                        currentSelectedYear = foundSub.category;
-                        currentSelectedSubjectId = foundSub.id;
-                    }
-                } else if (targetYear) {
-                    if (categories.includes(targetYear)) {
-                        currentSelectedYear = targetYear;
-                    }
-                }
-
                 render();
-            };
-
-            const script = document.createElement('script');
-            script.src = `${GOOGLE_SCRIPT_URL}?callback=handleServerResponse&t=${Date.now()}`;
-            script.onerror = function() {
-                updateSyncStatus('error', 'โหลดข้อมูลล้มเหลว (ใช้ออฟไลน์)');
-                categories = JSON.parse(localStorage.getItem('study_vault_categories')) || categories;
-                subjects = normalizeSubjects(JSON.parse(localStorage.getItem('study_vault_v5')) || []);
-                render();
-            };
-            document.body.appendChild(script);
+            } catch (err) {
+                console.log("Using cached data:", err);
+                updateSyncStatus('ready', 'พร้อมใช้งาน');
+            }
         }
 
         async function saveData() {
@@ -430,7 +435,7 @@
                 updateSyncStatus('success', 'บันทึกลง Google Drive แล้ว');
             } catch (err) {
                 console.error(err);
-                updateSyncStatus('error', 'เกิดข้อผิดพลาดในการบันทึก');
+                updateSyncStatus('error', 'บันทึกลงเครื่องแล้ว');
             }
         }
 
@@ -948,6 +953,7 @@
             document.getElementById('imageLightboxModal').classList.remove('flex');
         }
 
+        // --- Render หลัก ---
         function render() {
             const btnContainer = document.getElementById('headerActionButtons');
             const breadcrumbNav = document.getElementById('breadcrumbNav');
@@ -1352,6 +1358,7 @@
             }
         }
 
+        // เริ่มต้นโหลด
         loadDataFromGoogleDrive();
     </script>
 </body>
