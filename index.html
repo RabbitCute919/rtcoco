@@ -36,7 +36,7 @@
                     📂
                 </div>
                 <div>
-                    <h1 class="text-lg md:text-xl font-bold text-slate-900 leading-tight">คลังแฟ้มการเรียน</h1>
+                    <h1 class="text-lg md:text-xl font-bold text-slate-900 leading-tight">คลังแฟ้มเอกสารการเรียน</h1>
                     <div id="syncStatus" class="flex items-center gap-1.5 text-[11px] text-slate-500 font-medium">
                         <span class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span> กำลังเชื่อมต่อ Google Drive...
                     </div>
@@ -75,7 +75,7 @@
                     <h2 class="text-lg md:text-xl font-bold text-slate-900 flex items-center gap-2" id="currentYearTitle">
                         🎓 ปี 1
                     </h2>
-                    <p class="text-xs text-slate-500 mt-0.5" id="currentYearSubtitle">เลือกโฟลเดอร์วิชาเพื่อเปิดดูบทเรียน</p>
+                    <p class="text-xs text-slate-500 mt-0.5" id="currentYearSubtitle">เลือกโฟลเดอร์วิชาเพื่อเปิดดูไฟล์บทเรียน</p>
                 </div>
                 <button onclick="openAddSubjectModal()" class="text-xs md:text-sm bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-4 py-2 rounded-xl flex items-center gap-1.5 shadow-sm transition">
                     <span>➕</span> เพิ่มวิชาในชั้นปีนี้
@@ -121,7 +121,7 @@
 
     </main>
 
-    <!-- ================= MODALS (ออกแบบใหม่ให้สวยหรู ไม่ใช้ Alert เดิม) ================= -->
+    <!-- ================= MODALS ================= -->
 
     <!-- Modal: สร้าง/แก้ไข ชั้นปี -->
     <div id="modalCategory" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs hidden items-center justify-center p-4 z-50">
@@ -169,7 +169,7 @@
         </div>
     </div>
 
-    <!-- Modal: สร้าง/แก้ไข ชื่อบทเรียน (Custom Chapter Modal) -->
+    <!-- Modal: จัดการบทเรียน -->
     <div id="modalChapterCustom" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs hidden items-center justify-center p-4 z-50">
         <div class="bg-white p-6 rounded-3xl max-w-md w-full shadow-2xl space-y-4">
             <div class="flex justify-between items-center border-b border-slate-100 pb-3">
@@ -189,11 +189,11 @@
         </div>
     </div>
 
-    <!-- Modal: เพิ่ม & แก้ไข เนื้อหา/รูปภาพ/ลิงก์ (Add & Edit Link Modal) -->
+    <!-- Modal: เพิ่ม & แก้ไข ไฟล์/เอกสาร/รูปภาพ (File Manager Modal) -->
     <div id="modalItemForm" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs hidden items-center justify-center p-4 z-50">
         <div class="bg-white p-6 rounded-3xl max-w-md w-full shadow-2xl space-y-4">
             <div class="flex justify-between items-center border-b border-slate-100 pb-3">
-                <h3 class="text-base font-bold text-slate-900" id="modalItemFormHeading">🔗 จัดการเนื้อหา/เอกสาร</h3>
+                <h3 class="text-base font-bold text-slate-900" id="modalItemFormHeading">📄 เพิ่มไฟล์เอกสาร / สื่อ</h3>
                 <button onclick="closeModalItemForm()" class="text-slate-400 hover:text-slate-600 text-lg">✕</button>
             </div>
             <input type="hidden" id="itemFormChapterId">
@@ -202,34 +202,44 @@
 
             <div class="space-y-3">
                 <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">เลือกประเภทสื่อ</label>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">ชนิดไฟล์ / สื่อ</label>
                     <select id="modalItemMediaType" onchange="handleMediaTypeChange()" class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-medium bg-slate-50">
-                        <option value="summary">📝 สรุปเนื้อหา / เลกเชอร์ (PDF/Docs/Canva)</option>
-                        <option value="image">🖼️ รูปภาพ / X-ray / Diagram (มี Preview)</option>
-                        <option value="video">🎬 วิดีโอ / เลกเชอร์ออนไลน์ (YouTube)</option>
-                        <option value="exam">🎯 ข้อสอบ / แบบฝึกหัด / ควิซ</option>
-                        <option value="note">💡 โน้ตข้อความสั้น / จุดเน้น (ไม่ต้องมี URL)</option>
+                        <option value="pdf">📕 ไฟล์ PDF / เอกสารประกอบการสอน</option>
+                        <option value="image">🖼️ ไฟล์รูปภาพ / X-ray / Diagram</option>
+                        <option value="slide">📊 ไฟล์สไลด์ PowerPoint / Word (.pptx, .docx)</option>
+                        <option value="exam">🎯 ไฟล์ข้อสอบ / แบบฝึกหัด</option>
+                        <option value="note">💡 โน้ตย่อ / สรุปสั้น (พิมพ์ข้อความ)</option>
                     </select>
                 </div>
+
+                <!-- ช่องเลือกไฟล์จาก iPad (สำหรับผู้ที่อยากแปลงไฟล์เป็น URL หรือเลือกไฟล์) -->
+                <div id="fileUploadHelperBox" class="p-3 bg-indigo-50/50 rounded-2xl border border-indigo-100 space-y-1.5">
+                    <label class="block text-[11px] font-bold text-indigo-900">📁 เลือกไฟล์จาก iPad หรือ แกลเลอรีรูปภาพ:</label>
+                    <input type="file" id="localFileInput" onchange="handleLocalFileSelected(event)" class="w-full text-xs text-slate-500 file:mr-2 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-700">
+                    <p class="text-[10px] text-slate-400">💡 หากไฟล์อยู่ใน Google Drive ให้วางลิงก์ในช่องด้านล่างได้เลยครับ</p>
+                </div>
+
                 <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1.5" id="labelItemTitle">ชื่อหัวข้อ / คำอธิบาย</label>
-                    <input id="modalItemTitle" type="text" placeholder="ระบุชื่อหัวข้อ..." 
+                    <label class="block text-xs font-semibold text-slate-600 mb-1.5" id="labelItemTitle">ชื่อไฟล์ / คำอธิบายเอกสาร</label>
+                    <input id="modalItemTitle" type="text" placeholder="เช่น เลกเชอร์บทที่ 1.pdf, ข้อสอบปลายภาค..." 
                            class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
                 </div>
+
                 <div id="urlFieldContainer">
-                    <label class="block text-xs font-semibold text-slate-600 mb-1.5" id="labelItemUrl">URL ลิงก์ปลายทาง หรือ ลิงก์รูปภาพ</label>
-                    <input id="modalItemUrl" type="url" placeholder="https://..." 
+                    <label class="block text-xs font-semibold text-slate-600 mb-1.5" id="labelItemUrl">ลิงก์ไฟล์ (Google Drive, Canva, Direct Link)</label>
+                    <input id="modalItemUrl" type="url" placeholder="https://drive.google.com/file/d/..." 
                            class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
                 </div>
             </div>
+
             <div class="flex justify-end gap-2 pt-2">
                 <button onclick="closeModalItemForm()" class="px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-100 rounded-xl font-medium">ยกเลิก</button>
-                <button onclick="confirmSaveItemForm()" class="px-5 py-2.5 text-sm bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 font-medium shadow-sm">บันทึก</button>
+                <button onclick="confirmSaveItemForm()" class="px-5 py-2.5 text-sm bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 font-medium shadow-sm">บันทึกไฟล์</button>
             </div>
         </div>
     </div>
 
-    <!-- Modal: ยืนยันการลบ (Custom Confirm Delete Modal) -->
+    <!-- Modal: ยืนยันการลบ -->
     <div id="modalConfirmDelete" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs hidden items-center justify-center p-4 z-50">
         <div class="bg-white p-6 rounded-3xl max-w-sm w-full shadow-2xl space-y-4 text-center">
             <div class="w-12 h-12 rounded-full bg-rose-100 text-rose-600 text-2xl flex items-center justify-center mx-auto">
@@ -303,6 +313,17 @@
                 el.className = "flex items-center gap-1.5 text-[11px] text-rose-600 font-medium";
                 el.innerHTML = `<span class="w-2 h-2 rounded-full bg-rose-500"></span> ${text}`;
             }
+        }
+
+        // แปลง Google Drive URL ให้เป็นลิงก์ไฟล์ตรง (Direct File Link)
+        function formatDirectFileUrl(url) {
+            if (!url) return "";
+            if (url.includes("drive.google.com/file/d/")) {
+                const parts = url.split("/file/d/")[1];
+                const fileId = parts.split("/")[0].split("?")[0];
+                return `https://drive.google.com/file/d/${fileId}/view`;
+            }
+            return url;
         }
 
         function normalizeSubjects(data) {
@@ -410,7 +431,7 @@
             render();
         }
 
-        // --- จัดการชั้นปี (Modal สวยงาม) ---
+        // --- จัดการชั้นปี ---
         function openModalAddCategory() {
             document.getElementById('modalCategoryTitle').innerText = "🎓 เพิ่มโฟลเดอร์ชั้นปีใหม่";
             document.getElementById('categoryOldName').value = "";
@@ -438,14 +459,12 @@
             if (!newName) return;
 
             if (oldName === "") {
-                // สร้างใหม่
                 if (categories.includes(newName)) {
                     alert('มีชื่อโฟลเดอร์ปีนี้อยู่แล้ว');
                     return;
                 }
                 categories.push(newName);
             } else {
-                // แก้ไข
                 if (newName !== oldName && categories.includes(newName)) {
                     alert('มีชื่อนี้อยู่แล้ว');
                     return;
@@ -551,7 +570,7 @@
             goToSubjectsView(currentSelectedYear);
         }
 
-        // --- จัดการบทเรียน (Modal สวยงาม) ---
+        // --- จัดการบทเรียน ---
         function openAddChapterModal() {
             document.getElementById('modalChapterCustomTitle').innerText = "📑 เพิ่มบทเรียนใหม่";
             document.getElementById('customChapterTargetId').value = "";
@@ -588,7 +607,6 @@
             if (!subject.chapters) subject.chapters = [];
 
             if (chapterId === "") {
-                // สร้างใหม่
                 subject.chapters.push({
                     id: "chap_" + Date.now().toString(),
                     name: name,
@@ -596,7 +614,6 @@
                     exams: []
                 });
             } else {
-                // แก้ไข
                 const chap = subject.chapters.find(c => c.id === chapterId);
                 if (chap) chap.name = name;
             }
@@ -607,7 +624,7 @@
         }
 
         function deleteChapter(chapterId) {
-            openDeleteModal('คุณต้องการลบบทเรียนนี้และเนื้อหาทั้งหมดในบทนี้ใช่หรือไม่?', () => {
+            openDeleteModal('คุณต้องการลบบทเรียนนี้และไฟล์ทั้งหมดในบทนี้ใช่หรือไม่?', () => {
                 const subject = subjects.find(s => s.id === currentSelectedSubjectId);
                 if (!subject) return;
                 subject.chapters = subject.chapters.filter(c => c.id !== chapterId);
@@ -616,42 +633,67 @@
             });
         }
 
-        // --- เพิ่ม & แก้ไข เนื้อหา / รูปภาพ / ลิงก์ (Modal สวยงาม) ---
+        // --- เพิ่ม & แก้ไข ไฟล์/เอกสาร ---
         function handleMediaTypeChange() {
             const type = document.getElementById('modalItemMediaType').value;
             const urlContainer = document.getElementById('urlFieldContainer');
+            const fileUploadBox = document.getElementById('fileUploadHelperBox');
             const labelTitle = document.getElementById('labelItemTitle');
             const labelUrl = document.getElementById('labelItemUrl');
 
             if (type === 'note') {
                 urlContainer.classList.add('hidden');
-                labelTitle.innerText = "ข้อความโน้ตย่อ / จุดเน้นสำคัญ";
+                fileUploadBox.classList.add('hidden');
+                labelTitle.innerText = "ข้อความสรุป / จุดเน้นประจำบท";
             } else if (type === 'image') {
                 urlContainer.classList.remove('hidden');
-                labelTitle.innerText = "คำอธิบายรูปภาพ / ชื่อโครงสร้าง";
-                labelUrl.innerText = "URL ลิงก์รูปภาพ (Google Drive, Imgur, Direct Link)";
+                fileUploadBox.classList.remove('hidden');
+                labelTitle.innerText = "ชื่อรูปภาพ / โครงสร้างกายวิภาค";
+                labelUrl.innerText = "ลิงก์ไฟล์รูปภาพ (Direct URL, Imgur, Drive)";
             } else {
                 urlContainer.classList.remove('hidden');
-                labelTitle.innerText = "ชื่อหัวข้อ / คำอธิบาย";
-                labelUrl.innerText = "URL ลิงก์ปลายทาง (https://...)";
+                fileUploadBox.classList.remove('hidden');
+                labelTitle.innerText = "ชื่อไฟล์เอกสาร / ชีตสรุป";
+                labelUrl.innerText = "ลิงก์ไฟล์ Google Drive หรือ ลิงก์ดาวน์โหลด";
             }
         }
 
-        // เปิด Modal เพื่อ "เพิ่มลิงก์ใหม่"
+        function handleLocalFileSelected(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // ใส่ชื่อไฟล์ลงในช่องชื่อให้อัตโนมัติ
+            const titleInput = document.getElementById('modalItemTitle');
+            if (!titleInput.value) {
+                titleInput.value = file.name;
+            }
+
+            // ถ้าเป็นรูปภาพ สามารถทำ Preview Data URI ได้ทันที
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('modalItemUrl').value = e.target.result;
+                    document.getElementById('modalItemMediaType').value = 'image';
+                    handleMediaTypeChange();
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
         function openAddLinkModalToChapter(chapterId, chapterName) {
             document.getElementById('itemFormChapterId').value = chapterId;
             document.getElementById('itemFormIndex').value = "-1";
             document.getElementById('itemFormOldSection').value = "";
-            document.getElementById('modalItemFormHeading').innerText = `🔗 เพิ่มเนื้อหา: ${chapterName}`;
+            document.getElementById('modalItemFormHeading').innerText = `📄 เพิ่มไฟล์เข้า: ${chapterName}`;
             document.getElementById('modalItemTitle').value = '';
             document.getElementById('modalItemUrl').value = '';
-            document.getElementById('modalItemMediaType').value = 'summary';
+            document.getElementById('modalItemMediaType').value = 'pdf';
+            document.getElementById('localFileInput').value = '';
             handleMediaTypeChange();
             document.getElementById('modalItemForm').classList.remove('hidden');
             document.getElementById('modalItemForm').classList.add('flex');
         }
 
-        // เปิด Modal เพื่อ "แก้ไขลิงก์เดิม"
         function openEditItemModal(chapterId, sectionType, idx) {
             const subject = subjects.find(s => s.id === currentSelectedSubjectId);
             if (!subject) return;
@@ -665,11 +707,12 @@
             document.getElementById('itemFormChapterId').value = chapterId;
             document.getElementById('itemFormIndex').value = idx.toString();
             document.getElementById('itemFormOldSection').value = sectionType;
-            document.getElementById('modalItemFormHeading').innerText = `✏️ แก้ไขเนื้อหา/ลิงก์`;
+            document.getElementById('modalItemFormHeading').innerText = `✏️ แก้ไขไฟล์เอกสาร`;
 
             document.getElementById('modalItemTitle').value = item.title || '';
             document.getElementById('modalItemUrl').value = item.url || '';
-            document.getElementById('modalItemMediaType').value = item.mediaType || (sectionType === 'exam' ? 'exam' : 'summary');
+            document.getElementById('modalItemMediaType').value = item.mediaType || (sectionType === 'exam' ? 'exam' : 'pdf');
+            document.getElementById('localFileInput').value = '';
             
             handleMediaTypeChange();
             document.getElementById('modalItemForm').classList.remove('hidden');
@@ -697,16 +740,16 @@
             let url = document.getElementById('modalItemUrl').value.trim();
 
             if (!title) {
-                alert('กรุณากรอกชื่อหรือข้อความ');
+                alert('กรุณากรอกชื่อไฟล์หรือข้อความ');
                 return;
             }
 
             if (type !== 'note' && !url) {
-                alert('กรุณากรอก URL ลิงก์ปลายทาง');
+                alert('กรุณาเลือกไฟล์หรือวางลิงก์ไฟล์');
                 return;
             }
 
-            if (url && !url.startsWith('http://') && !url.startsWith('https://')) {
+            if (url && !url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('data:')) {
                 url = 'https://' + url;
             }
 
@@ -716,14 +759,12 @@
             const newItem = { title, url, mediaType: type };
 
             if (itemIdx === -1) {
-                // เพิ่มใหม่
                 if (type === 'exam') {
                     chap.exams.push(newItem);
                 } else {
                     chap.summaries.push(newItem);
                 }
             } else {
-                // แก้ไขของเดิม: ลบออกจากกล่องเดิมก่อน แล้วใส่กล่องใหม่ตามประเภท
                 if (oldSection === 'exam') {
                     chap.exams.splice(itemIdx, 1);
                 } else {
@@ -743,7 +784,7 @@
         }
 
         function deleteLink(chapterId, sectionType, idx) {
-            openDeleteModal('คุณต้องการลบรายการนี้ใช่หรือไม่?', () => {
+            openDeleteModal('คุณต้องการลบไฟล์นี้ใช่หรือไม่?', () => {
                 const subject = subjects.find(s => s.id === currentSelectedSubjectId);
                 if (!subject) return;
                 const chap = (subject.chapters || []).find(c => c.id === chapterId);
@@ -782,7 +823,7 @@
                     </button>
                 `;
                 breadcrumbNav.innerHTML = `
-                    <span class="text-indigo-600 font-bold flex items-center gap-1">🏠 หน้าหลัก (ชั้นปีทั้งหมด)</span>
+                    <span class="text-indigo-600 font-bold flex items-center gap-1">🏠 หน้าหลัก (แฟ้มชั้นปีทั้งหมด)</span>
                 `;
                 renderYearsGrid();
             } else if (currentSelectedYear && !currentSelectedSubjectId) {
@@ -856,9 +897,9 @@
                         </div>
                     </div>
                     <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-                        <span>📚 ${totalFiles} เอกสาร/สื่อ</span>
+                        <span>📚 ${totalFiles} เอกสาร/ไฟล์</span>
                         <span class="font-semibold text-indigo-600 group-hover:translate-x-0.5 transition">
-                            เปิดโฟลเดอร์ ➔
+                            เปิดแฟ้ม ➔
                         </span>
                     </div>
                 </div>
@@ -927,7 +968,7 @@
                     </div>
                     <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
                         <div class="flex items-center gap-2">
-                            <span class="text-emerald-600 font-medium">📝 ${sCount} เนื้อหา</span>
+                            <span class="text-emerald-600 font-medium">📝 ${sCount} ไฟล์</span>
                             <span>•</span>
                             <span class="text-amber-600 font-medium">🎯 ${eCount} ข้อสอบ</span>
                         </div>
@@ -953,11 +994,12 @@
             });
         }
 
-        // ฟังก์ชันสร้างการ์ดไอเทม (มีปุ่ม ✏️ แก้ไขชื่อ & URL)
+        // ฟังก์ชันสร้างการ์ดไฟล์เอกสารจริง
         function renderMediaItem(item, idx, chapterId, sectionType) {
-            const mType = item.mediaType || (sectionType === 'exam' ? 'exam' : 'summary');
+            const mType = item.mediaType || (sectionType === 'exam' ? 'exam' : 'pdf');
+            const directUrl = formatDirectFileUrl(item.url);
             
-            // 1. กรณีเป็นรูปภาพ (แสดง Thumbnail Preview พร้อมปุ่ม Edit/Delete)
+            // 1. รูปภาพ / X-ray (พรีวิว)
             if (mType === 'image') {
                 return `
                 <div data-index="${idx}" class="p-3 rounded-2xl bg-white hover:bg-slate-50 border border-slate-200 transition shadow-2xs space-y-2">
@@ -967,19 +1009,19 @@
                             <span>🖼️</span> ${item.title}
                         </span>
                         <div class="flex items-center gap-1">
-                            <a href="${item.url}" target="_blank" class="text-[10px] text-indigo-600 hover:underline px-1.5 py-0.5 bg-indigo-50 rounded">เปิดลิงก์</a>
+                            <a href="${directUrl}" target="_blank" class="text-[10px] text-indigo-600 hover:underline px-2 py-0.5 bg-indigo-50 rounded-lg font-medium">เปิดไฟล์เต็ม</a>
                             <button onclick="openEditItemModal('${chapterId}', '${sectionType}', ${idx})" class="text-slate-400 hover:text-indigo-600 text-xs px-1" title="แก้ไข">✏️</button>
                             <button onclick="deleteLink('${chapterId}', '${sectionType}', ${idx})" class="text-slate-300 hover:text-rose-500 text-xs px-1" title="ลบ">✕</button>
                         </div>
                     </div>
-                    <div onclick="showImageLightbox('${item.url}', '${item.title}')" class="cursor-pointer overflow-hidden rounded-xl bg-slate-100 max-h-36 flex items-center justify-center border border-slate-100 group">
-                        <img src="${item.url}" alt="${item.title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" onerror="this.src='https://placehold.co/400x200?text=Image+Preview';">
+                    <div onclick="showImageLightbox('${directUrl}', '${item.title}')" class="cursor-pointer overflow-hidden rounded-xl bg-slate-100 max-h-40 flex items-center justify-center border border-slate-100 group">
+                        <img src="${directUrl}" alt="${item.title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" onerror="this.src='https://placehold.co/400x200?text=Image+Preview';">
                     </div>
                 </div>
                 `;
             }
 
-            // 2. กรณีเป็นโน้ตสั้น
+            // 2. โน้ตข้อความ
             if (mType === 'note') {
                 return `
                 <div data-index="${idx}" class="flex items-start justify-between p-3 rounded-2xl bg-amber-50/60 border border-amber-200/80 transition shadow-2xs gap-2">
@@ -995,20 +1037,40 @@
                 `;
             }
 
-            // 3. กรณีเป็นลิงก์ทั่วไป / PDF / วิดีโอ / ข้อสอบ
-            let icon = '📄';
-            if (mType === 'video') icon = '🎬';
-            if (mType === 'exam') icon = '✏️';
+            // 3. ไฟล์ PDF, PowerPoint, Word, ข้อสอบ (ปุ่มเปิดอ่าน / ดาวน์โหลดไฟล์)
+            let badge = '📕 PDF';
+            let badgeClass = 'bg-rose-50 text-rose-700 border-rose-100';
+            if (mType === 'slide') {
+                badge = '📊 สไลด์';
+                badgeClass = 'bg-orange-50 text-orange-700 border-orange-100';
+            } else if (mType === 'exam') {
+                badge = '🎯 ข้อสอบ';
+                badgeClass = 'bg-amber-50 text-amber-700 border-amber-100';
+            }
 
             return `
-            <div data-index="${idx}" class="flex items-center justify-between p-2.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200/80 transition shadow-2xs gap-1.5">
-                <span class="link-handle drag-handle text-slate-300 hover:text-indigo-600 px-1 select-none text-xs">☰</span>
-                <a href="${item.url}" target="_blank" class="text-xs md:text-sm text-slate-800 hover:text-indigo-600 truncate flex-1 font-medium flex items-center gap-1.5">
-                    <span>${icon}</span> <span class="truncate">${item.title}</span>
-                </a>
-                <div class="flex items-center gap-1">
-                    <button onclick="openEditItemModal('${chapterId}', '${sectionType}', ${idx})" class="text-slate-400 hover:text-indigo-600 text-xs px-1" title="แก้ไข">✏️</button>
-                    <button onclick="deleteLink('${chapterId}', '${sectionType}', ${idx})" class="text-slate-300 hover:text-rose-500 ml-0.5 text-xs px-1" title="ลบ">✕</button>
+            <div data-index="${idx}" class="p-3 rounded-2xl bg-white hover:bg-slate-50 border border-slate-200/80 transition shadow-2xs space-y-2">
+                <div class="flex items-center justify-between gap-1.5">
+                    <span class="link-handle drag-handle text-slate-300 hover:text-indigo-600 px-1 select-none text-xs">☰</span>
+                    <div class="flex items-center gap-2 flex-1 truncate">
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-lg border ${badgeClass}">
+                            ${badge}
+                        </span>
+                        <span class="text-xs md:text-sm text-slate-900 font-medium truncate" title="${item.title}">
+                            ${item.title}
+                        </span>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <button onclick="openEditItemModal('${chapterId}', '${sectionType}', ${idx})" class="text-slate-400 hover:text-indigo-600 text-xs px-1" title="แก้ไข">✏️</button>
+                        <button onclick="deleteLink('${chapterId}', '${sectionType}', ${idx})" class="text-slate-300 hover:text-rose-500 text-xs px-1" title="ลบ">✕</button>
+                    </div>
+                </div>
+                
+                <div class="flex items-center justify-end gap-2 pt-1 border-t border-slate-100 text-xs">
+                    <a href="${directUrl}" target="_blank" 
+                       class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold rounded-xl flex items-center gap-1.5 transition">
+                        <span>👁️</span> เปิดอ่านไฟล์
+                    </a>
                 </div>
             </div>
             `;
@@ -1063,8 +1125,8 @@
                         </div>
                         <div class="flex items-center gap-1.5">
                             <button onclick="openAddLinkModalToChapter('${chap.id}', '${chap.name}')" 
-                                    class="text-xs bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-3 py-1.5 rounded-xl flex items-center gap-1 shadow-2xs transition">
-                                <span>+</span> เพิ่มเนื้อหา/รูปภาพ
+                                    class="text-xs bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-3.5 py-1.5 rounded-xl flex items-center gap-1.5 shadow-2xs transition">
+                                <span>➕</span> เพิ่มไฟล์เข้าบทนี้
                             </button>
                             <button onclick="editChapter('${chap.id}')" 
                                     class="text-xs text-slate-500 hover:text-indigo-600 hover:bg-slate-200/60 p-1.5 rounded-lg transition" title="แก้ไขชื่อบท">
@@ -1077,27 +1139,27 @@
                         </div>
                     </div>
 
-                    <!-- เนื้อหาภายในบท: สรุป/รูปภาพ/โน้ต & ข้อสอบ -->
+                    <!-- เนื้อหาภายในบท: ไฟล์สรุป & ข้อสอบ -->
                     <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <!-- ฝั่งสรุป & สื่อรูปภาพ -->
+                        <!-- ฝั่งเอกสารสรุป & รูปภาพ -->
                         <div class="bg-emerald-50/30 p-3.5 rounded-2xl border border-emerald-100/80 space-y-2.5">
                             <div class="flex items-center justify-between text-xs font-bold text-emerald-800">
-                                <span class="flex items-center gap-1.5">📝 สรุป, รูปภาพ & วิดีโอ</span>
-                                <span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full text-[10px] font-semibold">${summaries.length}</span>
+                                <span class="flex items-center gap-1.5">📝 แฟ้มเอกสาร & ไฟล์สรุป</span>
+                                <span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full text-[10px] font-semibold">${summaries.length} ไฟล์</span>
                             </div>
                             <div id="summaries_${chap.id}" class="space-y-2">
-                                ${summaries.length ? summaries.map((item, idx) => renderMediaItem(item, idx, chap.id, 'summary')).join('') : '<p class="text-xs text-slate-400 italic py-2 text-center">ยังไม่มีเนื้อหาในบทนี้</p>'}
+                                ${summaries.length ? summaries.map((item, idx) => renderMediaItem(item, idx, chap.id, 'summary')).join('') : '<p class="text-xs text-slate-400 italic py-3 text-center">ยังไม่มีไฟล์ในบทนี้</p>'}
                             </div>
                         </div>
 
                         <!-- ฝั่งข้อสอบ -->
                         <div class="bg-amber-50/30 p-3.5 rounded-2xl border border-amber-100/80 space-y-2.5">
                             <div class="flex items-center justify-between text-xs font-bold text-amber-800">
-                                <span class="flex items-center gap-1.5">🎯 ข้อสอบ & แบบฝึกหัด</span>
-                                <span class="bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full text-[10px] font-semibold">${exams.length}</span>
+                                <span class="flex items-center gap-1.5">🎯 แฟ้มข้อสอบ & ควิซ</span>
+                                <span class="bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full text-[10px] font-semibold">${exams.length} ไฟล์</span>
                             </div>
                             <div id="exams_${chap.id}" class="space-y-2">
-                                ${exams.length ? exams.map((item, idx) => renderMediaItem(item, idx, chap.id, 'exam')).join('') : '<p class="text-xs text-slate-400 italic py-2 text-center">ยังไม่มีข้อสอบในบทนี้</p>'}
+                                ${exams.length ? exams.map((item, idx) => renderMediaItem(item, idx, chap.id, 'exam')).join('') : '<p class="text-xs text-slate-400 italic py-3 text-center">ยังไม่มีไฟล์ข้อสอบในบทนี้</p>'}
                             </div>
                         </div>
                     </div>
