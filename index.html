@@ -64,6 +64,7 @@
                 <span class="text-xs text-slate-400 font-medium" id="yearsTotalCount"></span>
             </div>
 
+            <!-- Grid โฟลเดอร์ชั้นปี (ลากสลับตำแหน่งได้) -->
             <div id="yearsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             </div>
         </div>
@@ -82,6 +83,7 @@
                 </button>
             </div>
 
+            <!-- Grid โฟลเดอร์วิชา (ลากสลับตำแหน่งได้) -->
             <div id="subjectsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             </div>
         </div>
@@ -113,9 +115,8 @@
                 </div>
             </div>
 
-            <!-- รายการบทเรียนทั้งหมด (แยกเป็นบทๆ) -->
+            <!-- รายการบทเรียนทั้งหมด -->
             <div id="chaptersContainer" class="space-y-6">
-                <!-- การ์ดแต่ละบทจะ render ที่นี่ -->
             </div>
 
         </div>
@@ -269,12 +270,10 @@
             }
         }
 
-        // ปรับโครงสร้างข้อมูลเดิมให้รองรับระบบบทเรียน (Chapters)
         function normalizeSubjects(data) {
             return (data || []).map(sub => {
                 if (!sub.chapters) {
                     sub.chapters = [];
-                    // ถ้ามี summaries หรือ exams เดิม ให้ย้ายเข้าไปเป็นบทแรก
                     const hasOldSummaries = sub.summaries && sub.summaries.length > 0;
                     const hasOldExams = sub.exams && sub.exams.length > 0;
                     if (hasOldSummaries || hasOldExams) {
@@ -664,9 +663,9 @@
             }
         }
 
-        // Render ชั้นปี (Level 1)
+        // Render ชั้นปี (Level 1: รองรับลากสลับตำแหน่งโฟลเดอร์)
         function renderYearsGrid() {
-            document.getElementById('yearsTotalCount').innerText = `${categories.length} โฟลเดอร์ชั้นปี`;
+            document.getElementById('yearsTotalCount').innerText = `${categories.length} โฟลเดอร์ชั้นปี (ลากสลับตำแหน่งได้)`;
             const grid = document.getElementById('yearsGrid');
 
             grid.innerHTML = categories.map((cat) => {
@@ -679,16 +678,19 @@
                 });
 
                 return `
-                <div onclick="goToSubjectsView('${cat}')" 
-                     class="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs hover:shadow-md hover:border-indigo-300 transition cursor-pointer flex flex-col justify-between group">
+                <div data-id="${cat}" onclick="goToSubjectsView('${cat}')" 
+                     class="year-folder-card bg-white p-5 rounded-3xl border border-slate-200 shadow-xs hover:shadow-md hover:border-indigo-300 transition cursor-pointer flex flex-col justify-between group">
                     <div class="space-y-3">
                         <div class="flex items-start justify-between">
-                            <div class="w-14 h-14 rounded-2xl bg-amber-50 group-hover:bg-amber-100 flex items-center justify-center text-3xl transition">
-                                📁
+                            <div class="flex items-center gap-2.5">
+                                <span class="year-handle drag-handle text-slate-300 hover:text-indigo-600 px-1 py-0.5 text-base select-none" onclick="event.stopPropagation()">☰</span>
+                                <div class="w-12 h-12 rounded-2xl bg-amber-50 group-hover:bg-amber-100 flex items-center justify-center text-2xl transition">
+                                    📁
+                                </div>
                             </div>
                             <div class="flex items-center gap-1" onclick="event.stopPropagation()">
-                                <button onclick="editCategory('${cat}')" class="text-slate-400 hover:text-indigo-600 p-1.5 rounded-lg text-xs">✏️</button>
-                                <button onclick="deleteCategory('${cat}')" class="text-slate-400 hover:text-rose-500 p-1.5 rounded-lg text-xs">🗑️</button>
+                                <button onclick="editCategory('${cat}')" class="text-slate-400 hover:text-indigo-600 p-1.5 rounded-lg text-xs" title="แก้ไขชื่อ">✏️</button>
+                                <button onclick="deleteCategory('${cat}')" class="text-slate-400 hover:text-rose-500 p-1.5 rounded-lg text-xs" title="ลบ">🗑️</button>
                             </div>
                         </div>
                         <div>
@@ -707,13 +709,25 @@
                 </div>
                 `;
             }).join('');
+
+            // Sortable ให้ตารางโฟลเดอร์ชั้นปี (ลากสลับหน้าแรกได้เลย)
+            new Sortable(grid, {
+                handle: '.year-handle',
+                animation: 200,
+                ghostClass: 'sortable-ghost',
+                onEnd: function () {
+                    const newOrder = Array.from(grid.children).map(c => c.getAttribute('data-id'));
+                    categories = newOrder.filter(Boolean);
+                    saveData();
+                }
+            });
         }
 
-        // Render วิชา (Level 2)
+        // Render วิชา (Level 2: รองรับลากสลับตำแหน่งโฟลเดอร์วิชา)
         function renderSubjectsGrid() {
             document.getElementById('currentYearTitle').innerText = `🎓 ${currentSelectedYear}`;
             const yearSubs = subjects.filter(s => s.category === currentSelectedYear);
-            document.getElementById('currentYearSubtitle').innerText = `มีทั้งหมด ${yearSubs.length} วิชาในชั้นปีนี้`;
+            document.getElementById('currentYearSubtitle').innerText = `มีทั้งหมด ${yearSubs.length} วิชาในชั้นปีนี้ (ลากสลับตำแหน่งได้)`;
 
             const grid = document.getElementById('subjectsGrid');
             if (yearSubs.length === 0) {
@@ -736,12 +750,15 @@
                 });
 
                 return `
-                <div onclick="goToInsideSubjectView('${sub.id}')" 
-                     class="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs hover:shadow-md hover:border-indigo-300 transition cursor-pointer flex flex-col justify-between group">
+                <div data-id="${sub.id}" onclick="goToInsideSubjectView('${sub.id}')" 
+                     class="subject-folder-card bg-white p-5 rounded-3xl border border-slate-200 shadow-xs hover:shadow-md hover:border-indigo-300 transition cursor-pointer flex flex-col justify-between group">
                     <div class="space-y-3">
                         <div class="flex items-start justify-between">
-                            <div class="w-12 h-12 rounded-2xl bg-indigo-50 group-hover:bg-indigo-100 flex items-center justify-center text-2xl transition">
-                                📚
+                            <div class="flex items-center gap-2.5">
+                                <span class="subject-handle drag-handle text-slate-300 hover:text-indigo-600 px-1 py-0.5 text-base select-none" onclick="event.stopPropagation()">☰</span>
+                                <div class="w-12 h-12 rounded-2xl bg-indigo-50 group-hover:bg-indigo-100 flex items-center justify-center text-2xl transition">
+                                    📚
+                                </div>
                             </div>
                             <span class="text-[11px] font-semibold px-2 py-0.5 rounded-lg bg-slate-100 text-slate-600">
                                 ${chapCount} บทเรียน
@@ -767,6 +784,20 @@
                 </div>
                 `;
             }).join('');
+
+            // Sortable ให้ตารางวิชา
+            new Sortable(grid, {
+                handle: '.subject-handle',
+                animation: 200,
+                ghostClass: 'sortable-ghost',
+                onEnd: function () {
+                    const orderedIds = Array.from(grid.children).map(c => c.getAttribute('data-id'));
+                    const otherSubs = subjects.filter(s => s.category !== currentSelectedYear);
+                    const currentYearSubsSorted = orderedIds.map(id => subjects.find(s => s.id === id)).filter(Boolean);
+                    subjects = [...currentYearSubsSorted, ...otherSubs];
+                    saveData();
+                }
+            });
         }
 
         // Render บทเรียนภายในวิชา (Level 3: แยกเป็นบทๆ)
@@ -876,7 +907,7 @@
                 `;
             }).join('');
 
-            // Sortable จัดลำดับบทเรียน (Drag & Drop Chapters)
+            // Sortable จัดลำดับบทเรียน
             new Sortable(container, {
                 handle: '.chapter-handle',
                 animation: 200,
