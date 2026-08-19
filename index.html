@@ -28,122 +28,113 @@
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen pb-16 antialiased">
 
-    <!-- แถบ Header ด้านบน -->
+    <!-- Header ด้านบน -->
     <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-xs">
         <div class="max-w-5xl mx-auto px-4 py-3.5 flex flex-wrap justify-between items-center gap-3">
-            <div class="flex items-center gap-2.5 cursor-pointer" onclick="closeFolder()">
+            <div class="flex items-center gap-2.5 cursor-pointer" onclick="goToYearsView()">
                 <div class="w-10 h-10 rounded-2xl bg-indigo-600 flex items-center justify-center text-white text-xl shadow-indigo-100 shadow-md">
                     📂
                 </div>
                 <div>
-                    <h1 class="text-lg md:text-xl font-bold text-slate-900 leading-tight">คลังโฟลเดอร์วิชา</h1>
+                    <h1 class="text-lg md:text-xl font-bold text-slate-900 leading-tight">คลังแฟ้มการเรียน</h1>
                     <div id="syncStatus" class="flex items-center gap-1.5 text-[11px] text-slate-500 font-medium">
                         <span class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span> กำลังเชื่อมต่อ Google Drive...
                     </div>
                 </div>
             </div>
 
-            <!-- ปุ่มเปิดหน้าต่างเพิ่มวิชาใหม่ & จัดการชั้นปี -->
-            <div class="flex items-center gap-2">
-                <button onclick="openCategoryModal()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium px-3 py-2 rounded-xl flex items-center gap-1.5 transition">
-                    ⚙️ จัดการชั้นปี
-                </button>
-                <button onclick="openAddSubjectModal()" class="text-xs md:text-sm bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-4 py-2 rounded-xl flex items-center gap-1.5 shadow-sm shadow-indigo-200 transition">
-                    <span>➕</span> สร้างโฟลเดอร์วิชา
-                </button>
+            <!-- ปุ่ม Action ด้านบน (ปรับเปลี่ยนตามหน้าที่อยู่) -->
+            <div class="flex items-center gap-2" id="headerActionButtons">
+                <!-- JS จะ Render ปุ่มตามหน้าที่เปิดอยู่ -->
             </div>
         </div>
     </header>
 
     <main class="max-w-5xl mx-auto px-4 mt-6 space-y-6">
 
-        <!-- ================= VIEW 1: หน้ารวมโฟลเดอร์ (FOLDER GRID VIEW) ================= -->
-        <div id="mainFolderView" class="space-y-6">
-            
-            <!-- แถบเลือกชั้นปี (Year Tabs) -->
-            <div class="bg-white p-2 rounded-2xl border border-slate-200 shadow-xs">
-                <div class="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none" id="yearTabBar">
-                </div>
+        <!-- แถบนำทาง (Breadcrumb Navigation) -->
+        <nav class="bg-white px-4 py-2.5 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-2 text-xs md:text-sm font-medium text-slate-600 overflow-x-auto scrollbar-none" id="breadcrumbNav">
+            <!-- Render เส้นทางโฟลเดอร์ -->
+        </nav>
+
+        <!-- ================= LEVEL 1: หน้าหลัก โฟลเดอร์ชั้นปี (YEARS VIEW) ================= -->
+        <div id="viewYears" class="space-y-4">
+            <div class="flex items-center justify-between">
+                <h2 class="text-base md:text-lg font-bold text-slate-800 flex items-center gap-2">
+                    <span>🎓</span> แฟ้มชั้นปีทั้งหมด
+                </h2>
+                <span class="text-xs text-slate-400 font-medium" id="yearsTotalCount"></span>
             </div>
 
-            <!-- ค้นหาด่วน & สถิติ -->
-            <div class="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3">
-                <div id="statsSummary" class="text-xs text-slate-500 font-medium flex items-center gap-2 px-1">
-                </div>
-                <div class="relative flex-1 sm:max-w-xs">
-                    <input id="searchInput" type="text" oninput="render()" placeholder="🔍 ค้นหาโฟลเดอร์วิชา..." 
-                           class="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-2xs">
-                    <span class="absolute left-3 top-2.5 text-slate-400 text-xs">🔍</span>
-                </div>
+            <div id="yearsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- รายการโฟลเดอร์ชั้นปีจะ render ตรงนี้ -->
             </div>
-
-            <!-- Grid โฟลเดอร์วิชาทั้งหมด -->
-            <div id="folderGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div class="col-span-full text-center py-16 bg-white rounded-3xl border border-dashed border-slate-200 text-slate-400">
-                    <p class="text-3xl mb-2">⏳</p>
-                    <p class="text-sm font-medium">กำลังดาวน์โหลดข้อมูลล่าสุดจาก Google Drive...</p>
-                </div>
-            </div>
-
         </div>
 
-        <!-- ================= VIEW 2: หน้าภายในโฟลเดอร์ (INSIDE FOLDER VIEW) ================= -->
-        <div id="insideFolderView" class="hidden space-y-6">
+        <!-- ================= LEVEL 2: หน้าโฟลเดอร์วิชาในชั้นปี (SUBJECTS VIEW) ================= -->
+        <div id="viewSubjects" class="hidden space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                    <h2 class="text-lg md:text-xl font-bold text-slate-900 flex items-center gap-2" id="currentYearTitle">
+                        🎓 ปี 1
+                    </h2>
+                    <p class="text-xs text-slate-500 mt-0.5" id="currentYearSubtitle">เลือกโฟลเดอร์วิชาเพื่อเปิดดูเอกสาร</p>
+                </div>
+                <button onclick="openAddSubjectModal()" class="text-xs md:text-sm bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-4 py-2 rounded-xl flex items-center gap-1.5 shadow-sm transition">
+                    <span>➕</span> เพิ่มวิชาในชั้นปีนี้
+                </button>
+            </div>
+
+            <div id="subjectsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- รายการโฟลเดอร์วิชาจะ render ตรงนี้ -->
+            </div>
+        </div>
+
+        <!-- ================= LEVEL 3: หน้าเนื้อหาในวิชา (INSIDE SUBJECT VIEW) ================= -->
+        <div id="viewInsideSubject" class="hidden space-y-6">
             
-            <!-- Breadcrumb & Header โฟลเดอร์ -->
-            <div class="bg-white p-4 md:p-5 rounded-3xl border border-slate-200 shadow-xs space-y-3">
-                <div class="flex items-center justify-between gap-2 border-b border-slate-100 pb-3">
-                    <button onclick="closeFolder()" class="text-xs md:text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition">
-                        ⬅️ กลับหน้ารวมโฟลเดอร์
-                    </button>
-                    <div class="flex items-center gap-1.5">
-                        <button id="btnInsideAddLink" class="text-xs md:text-sm bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-3.5 py-2 rounded-xl flex items-center gap-1 shadow-2xs transition">
-                            ➕ เพิ่มลิงก์เข้าโฟลเดอร์
-                        </button>
-                        <button id="btnInsideEditFolder" class="text-xs text-slate-500 hover:text-indigo-600 hover:bg-slate-100 p-2 rounded-xl transition" title="แก้ไขชื่อโฟลเดอร์">
-                            ✏️
-                        </button>
-                        <button id="btnInsideDeleteFolder" class="text-xs text-slate-400 hover:text-rose-500 hover:bg-rose-50 p-2 rounded-xl transition" title="ลบโฟลเดอร์นี้">
-                            🗑️
-                        </button>
+            <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs flex flex-wrap justify-between items-center gap-3">
+                <div class="flex items-center gap-3">
+                    <span class="text-3xl md:text-4xl">📚</span>
+                    <div>
+                        <span id="insideSubjectYearBadge" class="text-xs font-semibold px-2.5 py-0.5 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-100">
+                            ชั้นปี
+                        </span>
+                        <h2 id="insideSubjectTitle" class="text-lg md:text-2xl font-bold text-slate-900 mt-1">ชื่อวิชา</h2>
                     </div>
                 </div>
-
-                <div class="flex items-center gap-3 pt-1">
-                    <span class="text-3xl md:text-4xl">📂</span>
-                    <div>
-                        <div class="flex items-center gap-2">
-                            <span id="insideFolderCategory" class="text-xs font-semibold px-2.5 py-0.5 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-100">
-                                ชั้นปี
-                            </span>
-                            <span id="insideFolderCount" class="text-xs text-slate-400 font-medium">0 รายการ</span>
-                        </div>
-                        <h2 id="insideFolderName" class="text-lg md:text-2xl font-bold text-slate-900 mt-0.5">ชื่อวิชา</h2>
-                    </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="openAddLinkModal()" class="text-xs md:text-sm bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-4 py-2 rounded-xl flex items-center gap-1.5 shadow-2xs transition">
+                        ➕ เพิ่มลิงก์เข้าวิชานี้
+                    </button>
+                    <button onclick="openEditCurrentSubjectModal()" class="text-xs text-slate-500 hover:text-indigo-600 hover:bg-slate-100 p-2 rounded-xl transition" title="แก้ไขชื่อวิชา">
+                        ✏️
+                    </button>
+                    <button onclick="deleteCurrentSubject()" class="text-xs text-slate-400 hover:text-rose-500 hover:bg-rose-50 p-2 rounded-xl transition" title="ลบวิชานี้">
+                        🗑️
+                    </button>
                 </div>
             </div>
 
-            <!-- เนื้อหาภายในโฟลเดอร์ (สรุป & ข้อสอบ) -->
+            <!-- กล่องสรุป & ข้อสอบ -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <!-- ฝั่งสรุปเนื้อหา -->
+                <!-- แฟ้มสรุป -->
                 <div class="bg-emerald-50/40 p-4 rounded-3xl border border-emerald-100/80 space-y-3">
                     <div class="flex items-center justify-between text-xs font-bold text-emerald-800">
-                        <span class="flex items-center gap-1.5 text-sm">📝 แฟ้มสรุปเนื้อหา & เลกเชอร์</span>
-                        <span id="insideSummaryCount" class="bg-emerald-100 text-emerald-700 px-2.5 py-0.5 rounded-full text-xs font-semibold">0</span>
+                        <span class="flex items-center gap-1.5 text-sm">📝 สรุปเนื้อหา & เลกเชอร์</span>
+                        <span id="subjectSummaryCount" class="bg-emerald-100 text-emerald-700 px-2.5 py-0.5 rounded-full text-xs font-semibold">0</span>
                     </div>
-                    <div id="insideSummariesList" class="space-y-2">
-                        <!-- ลิงก์สรุปจะ render ตรงนี้ -->
+                    <div id="subjectSummariesList" class="space-y-2">
                     </div>
                 </div>
 
-                <!-- ฝั่งข้อสอบ -->
+                <!-- แฟ้มข้อสอบ -->
                 <div class="bg-amber-50/40 p-4 rounded-3xl border border-amber-100/80 space-y-3">
                     <div class="flex items-center justify-between text-xs font-bold text-amber-800">
-                        <span class="flex items-center gap-1.5 text-sm">🎯 แฟ้มข้อสอบ & แบบฝึกหัด</span>
-                        <span id="insideExamCount" class="bg-amber-100 text-amber-700 px-2.5 py-0.5 rounded-full text-xs font-semibold">0</span>
+                        <span class="flex items-center gap-1.5 text-sm">🎯 ข้อสอบ & แบบฝึกหัด</span>
+                        <span id="subjectExamCount" class="bg-amber-100 text-amber-700 px-2.5 py-0.5 rounded-full text-xs font-semibold">0</span>
                     </div>
-                    <div id="insideExamsList" class="space-y-2">
-                        <!-- ลิงก์ข้อสอบจะ render ตรงนี้ -->
+                    <div id="subjectExamsList" class="space-y-2">
                     </div>
                 </div>
             </div>
@@ -152,132 +143,106 @@
 
     </main>
 
-    <!-- Modal 1: เพิ่มโฟลเดอร์วิชาใหม่ -->
-    <div id="addSubjectModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs hidden items-center justify-center p-4 z-50">
+    <!-- Modal 1: เพิ่ม/สร้าง โฟลเดอร์ชั้นปีใหม่ -->
+    <div id="modalAddCategory" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs hidden items-center justify-center p-4 z-50">
         <div class="bg-white p-6 rounded-3xl max-w-md w-full shadow-2xl space-y-4">
             <div class="flex justify-between items-center border-b border-slate-100 pb-3">
-                <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
-                    <span>📁</span> สร้างโฟลเดอร์วิชาใหม่
-                </h3>
-                <button onclick="closeAddSubjectModal()" class="text-slate-400 hover:text-slate-600 text-lg">✕</button>
+                <h3 class="text-base font-bold text-slate-900">🎓 เพิ่มโฟลเดอร์ชั้นปีใหม่</h3>
+                <button onclick="closeModalAddCategory()" class="text-slate-400 hover:text-slate-600 text-lg">✕</button>
             </div>
-            
-            <div class="space-y-3">
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">เลือกชั้นปี / หมวดหมู่</label>
-                    <select id="modalAddSubjectCategory" class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 text-sm font-medium">
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">ชื่อโฟลเดอร์วิชา</label>
-                    <input id="modalAddSubjectName" type="text" placeholder="เช่น สรีรวิทยา 1, รังสีเทคนิค..." 
-                           class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
-                </div>
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1.5">ชื่อชั้นปี / หมวดหมู่</label>
+                <input id="inputNewCategory" type="text" placeholder="เช่น ปี 1 เทอม 1, ปี 2 เทอม 2..." 
+                       class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
             </div>
-
             <div class="flex justify-end gap-2 pt-2">
-                <button onclick="closeAddSubjectModal()" class="px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-100 rounded-xl font-medium">ยกเลิก</button>
-                <button onclick="confirmAddSubject()" class="px-5 py-2.5 text-sm bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 font-medium shadow-sm">สร้างโฟลเดอร์</button>
+                <button onclick="closeModalAddCategory()" class="px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-100 rounded-xl font-medium">ยกเลิก</button>
+                <button onclick="confirmAddCategory()" class="px-5 py-2.5 text-sm bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 font-medium shadow-sm">สร้างโฟลเดอร์ปี</button>
             </div>
         </div>
     </div>
 
-    <!-- Modal 2: เพิ่มลิงก์เนื้อหา -->
-    <div id="linkModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs hidden items-center justify-center p-4 z-50">
+    <!-- Modal 2: เพิ่มโฟลเดอร์วิชา -->
+    <div id="modalAddSubject" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs hidden items-center justify-center p-4 z-50">
         <div class="bg-white p-6 rounded-3xl max-w-md w-full shadow-2xl space-y-4">
             <div class="flex justify-between items-center border-b border-slate-100 pb-3">
-                <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
-                    <span>🔗</span> เพิ่มลิงก์เนื้อหาเข้าโฟลเดอร์
-                </h3>
-                <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 text-lg">✕</button>
+                <h3 class="text-base font-bold text-slate-900">📚 เพิ่มวิชาใหม่</h3>
+                <button onclick="closeAddSubjectModal()" class="text-slate-400 hover:text-slate-600 text-lg">✕</button>
             </div>
-            <input type="hidden" id="modalSubjectId">
-            
             <div class="space-y-3">
                 <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">เลือกแฟ้มย่อย</label>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">ชั้นปี</label>
+                    <input id="modalAddSubjectCategoryName" type="text" readonly disabled 
+                           class="w-full px-3.5 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-sm font-semibold text-indigo-700">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">ชื่อวิชา / บทเรียน</label>
+                    <input id="modalAddSubjectName" type="text" placeholder="เช่น สรีรวิทยา, ฟิสิกส์การแพทย์..." 
+                           class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                </div>
+            </div>
+            <div class="flex justify-end gap-2 pt-2">
+                <button onclick="closeAddSubjectModal()" class="px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-100 rounded-xl font-medium">ยกเลิก</button>
+                <button onclick="confirmAddSubject()" class="px-5 py-2.5 text-sm bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 font-medium shadow-sm">บันทึก</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 3: เพิ่มลิงก์เข้าวิชา -->
+    <div id="modalAddLink" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs hidden items-center justify-center p-4 z-50">
+        <div class="bg-white p-6 rounded-3xl max-w-md w-full shadow-2xl space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                <h3 class="text-base font-bold text-slate-900">🔗 เพิ่มลิงก์เอกสาร</h3>
+                <button onclick="closeModalAddLink()" class="text-slate-400 hover:text-slate-600 text-lg">✕</button>
+            </div>
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">ประเภทเอกสาร</label>
                     <select id="modalLinkType" class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-medium">
-                        <option value="summary">📝 แฟ้มสรุปเนื้อหา / เลกเชอร์</option>
-                        <option value="exam">🎯 แฟ้มข้อสอบ / แบบฝึกหัด / ควิซ</option>
+                        <option value="summary">📝 สรุปเนื้อหา / เลกเชอร์</option>
+                        <option value="exam">🎯 ข้อสอบ / แบบฝึกหัด</option>
                     </select>
                 </div>
-
                 <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">ชื่อหัวข้อ / เอกสาร</label>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">ชื่อเรื่อง / คำอธิบาย</label>
                     <input id="modalLinkTitle" type="text" placeholder="เช่น สรุปบทที่ 1, ตะลุยโจทย์ปลายภาค" 
                            class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
                 </div>
-
                 <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">URL ปลายทาง (Google Drive, Canva, Notion ฯลฯ)</label>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">URL (Google Drive, Notion, Canva...)</label>
                     <input id="modalLinkUrl" type="url" placeholder="https://..." 
                            class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
                 </div>
             </div>
-
             <div class="flex justify-end gap-2 pt-2">
-                <button onclick="closeModal()" class="px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-100 rounded-xl font-medium">ยกเลิก</button>
-                <button onclick="saveLink()" class="px-5 py-2.5 text-sm bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 font-medium shadow-sm">บันทึกข้อมูล</button>
+                <button onclick="closeModalAddLink()" class="px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-100 rounded-xl font-medium">ยกเลิก</button>
+                <button onclick="confirmAddLink()" class="px-5 py-2.5 text-sm bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 font-medium shadow-sm">บันทึก</button>
             </div>
         </div>
     </div>
 
-    <!-- Modal 3: จัดการชั้นปี -->
-    <div id="categoryModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs hidden items-center justify-center p-4 z-50">
+    <!-- Modal 4: แก้ไขชื่อวิชา -->
+    <div id="modalEditSubject" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs hidden items-center justify-center p-4 z-50">
         <div class="bg-white p-6 rounded-3xl max-w-md w-full shadow-2xl space-y-4">
             <div class="flex justify-between items-center border-b border-slate-100 pb-3">
-                <h3 class="text-base font-bold text-slate-900">⚙️ จัดการ & แก้ไขชั้นปี</h3>
-                <button onclick="closeCategoryModal()" class="text-slate-400 hover:text-slate-600 text-lg">✕</button>
-            </div>
-            
-            <div class="flex gap-2">
-                <input id="customCategoryInput" type="text" placeholder="เพิ่มปีใหม่ เช่น ปี 1 เทอม 1..." 
-                       class="flex-1 px-3.5 py-2 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                <button onclick="addNewCategory()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition">
-                    เพิ่ม
-                </button>
-            </div>
-
-            <p class="text-[11px] text-slate-400">💡 แตะ ✏️ เพื่อเปลี่ยนชื่อ หรือแตะค้าง ☰ เพื่อลากสลับลำดับชั้นปี</p>
-
-            <div class="space-y-1.5 max-h-60 overflow-y-auto pr-1" id="categoryManagerList">
-            </div>
-
-            <div class="flex justify-end pt-2">
-                <button onclick="closeCategoryModal()" class="px-5 py-2.5 text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-medium">
-                    ปิดหน้าต่าง
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal 4: แก้ไขชื่อโฟลเดอร์วิชา -->
-    <div id="editSubjectModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs hidden items-center justify-center p-4 z-50">
-        <div class="bg-white p-6 rounded-3xl max-w-md w-full shadow-2xl space-y-4">
-            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
-                <h3 class="text-base font-bold text-slate-900">✏️ แก้ไขโฟลเดอร์วิชา & ชั้นปี</h3>
+                <h3 class="text-base font-bold text-slate-900">✏️ แก้ไขวิชา</h3>
                 <button onclick="closeEditSubjectModal()" class="text-slate-400 hover:text-slate-600 text-lg">✕</button>
             </div>
-            <input type="hidden" id="editSubjectId">
-            
             <div class="space-y-3">
                 <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">ชั้นปี / หมวดหมู่</label>
-                    <select id="editSubjectCategory" class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm bg-slate-50">
+                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">ย้ายไปชั้นปี</label>
+                    <select id="modalEditSubjectCategory" class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm bg-slate-50">
                     </select>
                 </div>
-
                 <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">ชื่อโฟลเดอร์วิชา</label>
-                    <input id="editSubjectName" type="text" placeholder="ระบุชื่อวิชา..." 
+                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">ชื่อวิชา</label>
+                    <input id="modalEditSubjectName" type="text" 
                            class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
                 </div>
             </div>
-
             <div class="flex justify-end gap-2 pt-2">
                 <button onclick="closeEditSubjectModal()" class="px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-100 rounded-xl font-medium">ยกเลิก</button>
-                <button onclick="saveEditSubject()" class="px-5 py-2.5 text-sm bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 font-medium shadow-sm">บันทึกการแก้ไข</button>
+                <button onclick="confirmEditSubject()" class="px-5 py-2.5 text-sm bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 font-medium shadow-sm">บันทึกการแก้ไข</button>
             </div>
         </div>
     </div>
@@ -287,8 +252,10 @@
 
         let categories = ['ปี 1', 'ปี 2', 'ปี 3', 'ปี 4', 'วิชาทั่วไป'];
         let subjects = [];
-        let currentFilter = 'ทั้งหมด';
-        let activeSubjectId = null; // เก็บ id ของโฟลเดอร์ที่เปิดอยู่
+
+        // สถานะการนำทาง
+        let currentSelectedYear = null; // ชั้นปีที่กำลังเปิดดู
+        let currentSelectedSubjectId = null; // วิชาที่กำลังเปิดดู
 
         function updateSyncStatus(status, text) {
             const el = document.getElementById('syncStatus');
@@ -343,123 +310,105 @@
             }
         }
 
-        // --- ระบบเปิด/ปิด โฟลเดอร์ ---
-        function openFolder(subjectId) {
-            activeSubjectId = subjectId;
-            document.getElementById('mainFolderView').classList.add('hidden');
-            document.getElementById('insideFolderView').classList.remove('hidden');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            renderInsideFolder();
-        }
-
-        function closeFolder() {
-            activeSubjectId = null;
-            document.getElementById('insideFolderView').classList.add('hidden');
-            document.getElementById('mainFolderView').classList.remove('hidden');
+        // --- ระบบสลับมุมมอง (Navigation) ---
+        function goToYearsView() {
+            currentSelectedYear = null;
+            currentSelectedSubjectId = null;
+            document.getElementById('viewYears').classList.remove('hidden');
+            document.getElementById('viewSubjects').classList.add('hidden');
+            document.getElementById('viewInsideSubject').classList.add('hidden');
             render();
         }
 
-        function renderInsideFolder() {
-            const subject = subjects.find(s => s.id === activeSubjectId);
-            if (!subject) {
-                closeFolder();
+        function goToSubjectsView(yearName) {
+            currentSelectedYear = yearName;
+            currentSelectedSubjectId = null;
+            document.getElementById('viewYears').classList.add('hidden');
+            document.getElementById('viewSubjects').classList.remove('hidden');
+            document.getElementById('viewInsideSubject').classList.add('hidden');
+            render();
+        }
+
+        function goToInsideSubjectView(subjectId) {
+            currentSelectedSubjectId = subjectId;
+            document.getElementById('viewYears').classList.add('hidden');
+            document.getElementById('viewSubjects').classList.add('hidden');
+            document.getElementById('viewInsideSubject').classList.remove('hidden');
+            render();
+        }
+
+        // --- เพิ่ม/แก้ไข/ลบ ชั้นปี (Category) ---
+        function openModalAddCategory() {
+            document.getElementById('inputNewCategory').value = '';
+            document.getElementById('modalAddCategory').classList.remove('hidden');
+            document.getElementById('modalAddCategory').classList.add('flex');
+        }
+
+        function closeModalAddCategory() {
+            document.getElementById('modalAddCategory').classList.add('hidden');
+            document.getElementById('modalAddCategory').classList.remove('flex');
+        }
+
+        function confirmAddCategory() {
+            const name = document.getElementById('inputNewCategory').value.trim();
+            if (!name) return;
+            if (categories.includes(name)) {
+                alert('มีชื่อโฟลเดอร์ปีนี้อยู่แล้ว');
+                return;
+            }
+            categories.push(name);
+            saveData();
+            closeModalAddCategory();
+            render();
+        }
+
+        function editCategory(catName) {
+            const newName = prompt(`แก้ไขชื่อโฟลเดอร์ "${catName}" เป็น:`, catName);
+            if (!newName || newName.trim() === "" || newName.trim() === catName) return;
+
+            const trimmed = newName.trim();
+            if (categories.includes(trimmed)) {
+                alert('มีชื่อนี้อยู่แล้ว');
                 return;
             }
 
-            document.getElementById('insideFolderName').innerText = subject.name;
-            document.getElementById('insideFolderCategory').innerText = `🎓 ${subject.category || 'ทั่วไป'}`;
-            
-            const sumCount = (subject.summaries || []).length;
-            const exCount = (subject.exams || []).length;
-            document.getElementById('insideFolderCount').innerText = `${sumCount + exCount} ไฟล์`;
-            document.getElementById('insideSummaryCount').innerText = sumCount;
-            document.getElementById('insideExamCount').innerText = exCount;
+            const idx = categories.indexOf(catName);
+            if (idx !== -1) categories[idx] = trimmed;
 
-            document.getElementById('btnInsideAddLink').onclick = () => openAddLinkModal(subject.id);
-            document.getElementById('btnInsideEditFolder').onclick = () => openEditSubjectModal(subject.id);
-            document.getElementById('btnInsideDeleteFolder').onclick = () => {
-                deleteSubject(subject.id);
-                closeFolder();
-            };
+            subjects.forEach(s => {
+                if (s.category === catName) s.category = trimmed;
+            });
 
-            // 1. Render แฟ้มสรุป
-            const sumList = document.getElementById('insideSummariesList');
-            if (sumCount === 0) {
-                sumList.innerHTML = `<p class="text-xs text-slate-400 italic py-6 text-center bg-white/70 rounded-2xl border border-emerald-100">ยังไม่มีลิงก์สรุปในแฟ้มนี้</p>`;
-            } else {
-                sumList.innerHTML = subject.summaries.map((item, idx) => `
-                    <div data-index="${idx}" class="flex items-center justify-between p-3 rounded-2xl bg-white hover:bg-emerald-50/60 border border-slate-200/80 transition shadow-2xs gap-2">
-                        <span class="link-handle drag-handle text-slate-300 hover:text-emerald-600 px-1 select-none text-base">☰</span>
-                        <a href="${item.url}" target="_blank" class="text-xs md:text-sm text-slate-800 hover:text-emerald-700 truncate flex-1 font-medium flex items-center gap-1.5">
-                            <span>📄</span> <span class="truncate">${item.title}</span>
-                        </a>
-                        <button onclick="deleteLink('${subject.id}', 'summary', ${idx})" class="text-slate-300 hover:text-rose-500 ml-1 text-xs px-2 py-1">✕</button>
-                    </div>
-                `).join('');
+            if (currentSelectedYear === catName) currentSelectedYear = trimmed;
 
-                new Sortable(sumList, {
-                    handle: '.link-handle',
-                    animation: 150,
-                    ghostClass: 'sortable-ghost',
-                    onEnd: function () {
-                        const newIndices = Array.from(sumList.children).map(c => parseInt(c.getAttribute('data-index')));
-                        subject.summaries = newIndices.map(i => subject.summaries[i]).filter(Boolean);
-                        saveData();
-                        renderInsideFolder();
-                    }
-                });
-            }
+            saveData();
+            render();
+        }
 
-            // 2. Render แฟ้มข้อสอบ
-            const exList = document.getElementById('insideExamsList');
-            if (exCount === 0) {
-                exList.innerHTML = `<p class="text-xs text-slate-400 italic py-6 text-center bg-white/70 rounded-2xl border border-amber-100">ยังไม่มีลิงก์ข้อสอบในแฟ้มนี้</p>`;
-            } else {
-                exList.innerHTML = subject.exams.map((item, idx) => `
-                    <div data-index="${idx}" class="flex items-center justify-between p-3 rounded-2xl bg-white hover:bg-amber-50/60 border border-slate-200/80 transition shadow-2xs gap-2">
-                        <span class="link-handle drag-handle text-slate-300 hover:text-amber-600 px-1 select-none text-base">☰</span>
-                        <a href="${item.url}" target="_blank" class="text-xs md:text-sm text-slate-800 hover:text-amber-800 truncate flex-1 font-medium flex items-center gap-1.5">
-                            <span>✏️</span> <span class="truncate">${item.title}</span>
-                        </a>
-                        <button onclick="deleteLink('${subject.id}', 'exam', ${idx})" class="text-slate-300 hover:text-rose-500 ml-1 text-xs px-2 py-1">✕</button>
-                    </div>
-                `).join('');
-
-                new Sortable(exList, {
-                    handle: '.link-handle',
-                    animation: 150,
-                    ghostClass: 'sortable-ghost',
-                    onEnd: function () {
-                        const newIndices = Array.from(exList.children).map(c => parseInt(c.getAttribute('data-index')));
-                        subject.exams = newIndices.map(i => subject.exams[i]).filter(Boolean);
-                        saveData();
-                        renderInsideFolder();
-                    }
-                });
+        function deleteCategory(catName) {
+            if (confirm(`ต้องการลบโฟลเดอร์ "${catName}" และวิชาทั้งหมดที่อยู่ในปีนี้ใช่หรือไม่?`)) {
+                categories = categories.filter(c => c !== catName);
+                subjects = subjects.filter(s => s.category !== catName);
+                saveData();
+                goToYearsView();
             }
         }
 
         // --- เพิ่ม/แก้ไข/ลบ วิชา ---
         function openAddSubjectModal() {
-            const select = document.getElementById('modalAddSubjectCategory');
-            select.innerHTML = categories.map(cat => `<option value="${cat}">📌 ${cat}</option>`).join('');
-            if (currentFilter !== 'ทั้งหมด' && categories.includes(currentFilter)) {
-                select.value = currentFilter;
-            }
+            document.getElementById('modalAddSubjectCategoryName').value = `🎓 ${currentSelectedYear}`;
             document.getElementById('modalAddSubjectName').value = '';
-            document.getElementById('addSubjectModal').classList.remove('hidden');
-            document.getElementById('addSubjectModal').classList.add('flex');
+            document.getElementById('modalAddSubject').classList.remove('hidden');
+            document.getElementById('modalAddSubject').classList.add('flex');
         }
 
         function closeAddSubjectModal() {
-            document.getElementById('addSubjectModal').classList.add('hidden');
-            document.getElementById('addSubjectModal').classList.remove('flex');
+            document.getElementById('modalAddSubject').classList.add('hidden');
+            document.getElementById('modalAddSubject').classList.remove('flex');
         }
 
         function confirmAddSubject() {
             const name = document.getElementById('modalAddSubjectName').value.trim();
-            const category = document.getElementById('modalAddSubjectCategory').value || (categories[0] || 'ทั่วไป');
-
             if (!name) {
                 alert('กรุณากรอกชื่อวิชา');
                 return;
@@ -467,177 +416,82 @@
 
             subjects.unshift({
                 id: "sub_" + Date.now().toString(),
-                category: category,
+                category: currentSelectedYear,
                 name: name,
                 summaries: [],
                 exams: []
             });
 
             saveData();
-            render();
             closeAddSubjectModal();
+            render();
         }
 
-        function openEditSubjectModal(subjectId) {
-            const subject = subjects.find(s => s.id === subjectId);
+        function openEditCurrentSubjectModal() {
+            const subject = subjects.find(s => s.id === currentSelectedSubjectId);
             if (!subject) return;
 
-            document.getElementById('editSubjectId').value = subject.id;
-            document.getElementById('editSubjectName').value = subject.name;
-
-            const editCatSelect = document.getElementById('editSubjectCategory');
-            editCatSelect.innerHTML = categories.map(cat => `
+            const select = document.getElementById('modalEditSubjectCategory');
+            select.innerHTML = categories.map(cat => `
                 <option value="${cat}" ${cat === subject.category ? 'selected' : ''}>🎓 ${cat}</option>
             `).join('');
 
-            document.getElementById('editSubjectModal').classList.remove('hidden');
-            document.getElementById('editSubjectModal').classList.add('flex');
+            document.getElementById('modalEditSubjectName').value = subject.name;
+            document.getElementById('modalEditSubject').classList.remove('hidden');
+            document.getElementById('modalEditSubject').classList.add('flex');
         }
 
         function closeEditSubjectModal() {
-            document.getElementById('editSubjectModal').classList.add('hidden');
-            document.getElementById('editSubjectModal').classList.remove('flex');
+            document.getElementById('modalEditSubject').classList.add('hidden');
+            document.getElementById('modalEditSubject').classList.remove('flex');
         }
 
-        function saveEditSubject() {
-            const id = document.getElementById('editSubjectId').value;
-            const newName = document.getElementById('editSubjectName').value.trim();
-            const newCategory = document.getElementById('editSubjectCategory').value;
+        function confirmEditSubject() {
+            const subject = subjects.find(s => s.id === currentSelectedSubjectId);
+            if (!subject) return;
+
+            const newCat = document.getElementById('modalEditSubjectCategory').value;
+            const newName = document.getElementById('modalEditSubjectName').value.trim();
 
             if (!newName) {
                 alert('กรุณากรอกชื่อวิชา');
                 return;
             }
 
-            const subject = subjects.find(s => s.id === id);
-            if (subject) {
-                subject.name = newName;
-                subject.category = newCategory;
-                saveData();
-                render();
-                if (activeSubjectId) renderInsideFolder();
-                closeEditSubjectModal();
-            }
-        }
+            subject.category = newCat;
+            subject.name = newName;
+            currentSelectedYear = newCat;
 
-        function deleteSubject(id) {
-            if (confirm('คุณต้องการลบโฟลเดอร์นี้และลิงก์ทั้งหมดใช่หรือไม่?')) {
-                subjects = subjects.filter(s => s.id !== id);
-                saveData();
-                render();
-            }
-        }
-
-        // --- จัดการชั้นปี ---
-        function openCategoryModal() {
-            document.getElementById('customCategoryInput').value = '';
-            renderCategoryManagerList();
-            document.getElementById('categoryModal').classList.remove('hidden');
-            document.getElementById('categoryModal').classList.add('flex');
-        }
-
-        function closeCategoryModal() {
-            document.getElementById('categoryModal').classList.add('hidden');
-            document.getElementById('categoryModal').classList.remove('flex');
+            saveData();
+            closeEditSubjectModal();
             render();
         }
 
-        function addNewCategory() {
-            const input = document.getElementById('customCategoryInput');
-            const name = input.value.trim();
-            if (!name) return;
-            if (categories.includes(name)) {
-                alert('มีชื่อชั้นปีนี้อยู่แล้ว');
-                return;
-            }
-            categories.push(name);
-            input.value = '';
-            saveData();
-            renderCategoryManagerList();
-        }
-
-        function editCategoryName(oldName) {
-            const newName = prompt(`แก้ไขชื่อ "${oldName}" เป็น:`, oldName);
-            if (!newName || newName.trim() === "" || newName.trim() === oldName) return;
-
-            const trimmedName = newName.trim();
-            if (categories.includes(trimmedName)) {
-                alert('มีชื่อนี้อยู่แล้ว');
-                return;
-            }
-
-            const index = categories.indexOf(oldName);
-            if (index !== -1) categories[index] = trimmedName;
-
-            subjects.forEach(sub => {
-                if (sub.category === oldName) sub.category = trimmedName;
-            });
-
-            if (currentFilter === oldName) currentFilter = trimmedName;
-
-            saveData();
-            renderCategoryManagerList();
-        }
-
-        function deleteCategory(catName) {
-            if (confirm(`ต้องการลบ "${catName}" ใช่หรือไม่?\n(วิชาในหมวดนี้จะถูกย้ายไปชั้นปีแรก)`)) {
-                categories = categories.filter(c => c !== catName);
-                subjects.forEach(sub => {
-                    if (sub.category === catName) sub.category = categories[0] || 'ทั่วไป';
-                });
-                if (currentFilter === catName) currentFilter = 'ทั้งหมด';
+        function deleteCurrentSubject() {
+            if (confirm('คุณต้องการลบวิชานี้และลิงก์ทั้งหมดใช่หรือไม่?')) {
+                subjects = subjects.filter(s => s.id !== currentSelectedSubjectId);
                 saveData();
-                renderCategoryManagerList();
+                goToSubjectsView(currentSelectedYear);
             }
-        }
-
-        function renderCategoryManagerList() {
-            const list = document.getElementById('categoryManagerList');
-            if (categories.length === 0) {
-                list.innerHTML = `<p class="text-xs text-slate-400 italic py-2 text-center">ยังไม่มีชั้นปี เพิ่มด้านบนได้เลย</p>`;
-                return;
-            }
-            list.innerHTML = categories.map((cat) => `
-                <div data-id="${cat}" class="flex items-center justify-between p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm">
-                    <div class="flex items-center gap-2 truncate flex-1">
-                        <span class="drag-handle text-slate-400 hover:text-indigo-600 px-1 py-0.5 select-none text-base">☰</span>
-                        <span class="font-medium text-slate-700 truncate">🎓 ${cat}</span>
-                    </div>
-                    <div class="flex items-center gap-1">
-                        <button onclick="editCategoryName('${cat}')" class="text-slate-500 hover:bg-slate-200 p-1.5 rounded-lg text-xs" title="แก้ไขชื่อ">✏️</button>
-                        <button onclick="deleteCategory('${cat}')" class="text-rose-500 hover:bg-rose-50 px-2 py-1 rounded text-xs font-medium">ลบ</button>
-                    </div>
-                </div>
-            `).join('');
-
-            new Sortable(list, {
-                handle: '.drag-handle',
-                animation: 200,
-                ghostClass: 'sortable-ghost',
-                onEnd: function () {
-                    const newOrder = Array.from(list.children).map(item => item.getAttribute('data-id'));
-                    categories = newOrder.filter(Boolean);
-                    saveData();
-                }
-            });
         }
 
         // --- เพิ่ม/ลบ ลิงก์ ---
-        function openAddLinkModal(subjectId) {
-            document.getElementById('modalSubjectId').value = subjectId;
+        function openAddLinkModal() {
             document.getElementById('modalLinkTitle').value = '';
             document.getElementById('modalLinkUrl').value = '';
-            document.getElementById('linkModal').classList.remove('hidden');
-            document.getElementById('linkModal').classList.add('flex');
+            document.getElementById('modalAddLink').classList.remove('hidden');
+            document.getElementById('modalAddLink').classList.add('flex');
         }
 
-        function closeModal() {
-            document.getElementById('linkModal').classList.add('hidden');
-            document.getElementById('linkModal').classList.remove('flex');
+        function closeModalAddLink() {
+            document.getElementById('modalAddLink').classList.add('hidden');
+            document.getElementById('modalAddLink').classList.remove('flex');
         }
 
-        function saveLink() {
-            const id = document.getElementById('modalSubjectId').value;
+        function confirmAddLink() {
+            const subject = subjects.find(s => s.id === currentSelectedSubjectId);
+            if (!subject) return;
+
             const type = document.getElementById('modalLinkType').value;
             const title = document.getElementById('modalLinkTitle').value.trim();
             let url = document.getElementById('modalLinkUrl').value.trim();
@@ -651,160 +505,275 @@
                 url = 'https://' + url;
             }
 
-            const subject = subjects.find(s => s.id === id);
-            if (subject) {
-                if (!subject.summaries) subject.summaries = [];
-                if (!subject.exams) subject.exams = [];
+            if (!subject.summaries) subject.summaries = [];
+            if (!subject.exams) subject.exams = [];
 
-                if (type === 'summary') {
-                    subject.summaries.push({ title, url });
-                } else {
-                    subject.exams.push({ title, url });
-                }
-                saveData();
-                render();
-                if (activeSubjectId) renderInsideFolder();
-                closeModal();
+            if (type === 'summary') {
+                subject.summaries.push({ title, url });
+            } else {
+                subject.exams.push({ title, url });
             }
-        }
 
-        function deleteLink(subjectId, type, index) {
-            const subject = subjects.find(s => s.id === subjectId);
-            if (subject) {
-                if (type === 'summary') subject.summaries.splice(index, 1);
-                if (type === 'exam') subject.exams.splice(index, 1);
-                saveData();
-                render();
-                if (activeSubjectId) renderInsideFolder();
-            }
-        }
-
-        function setFilter(cat) {
-            currentFilter = cat;
+            saveData();
+            closeModalAddLink();
             render();
         }
 
-        // --- Render หน้าหลัก (Grid โฟลเดอร์) ---
-        function render() {
-            if (activeSubjectId) return; // ถ้ากำลังเปิดโฟลเดอร์อยู่ ไม่ต้อง re-render หน้ารวม
+        function deleteLink(type, idx) {
+            const subject = subjects.find(s => s.id === currentSelectedSubjectId);
+            if (!subject) return;
 
-            // 1. Render แถบเลือกชั้นปี
-            const yearTabBar = document.getElementById('yearTabBar');
-            const allFilters = ['ทั้งหมด', ...categories];
-            yearTabBar.innerHTML = allFilters.map(cat => {
-                const isActive = currentFilter === cat;
-                return `
-                    <button onclick="setFilter('${cat}')" 
-                            class="px-4 py-2 rounded-xl text-xs md:text-sm font-semibold whitespace-nowrap transition flex items-center gap-1.5 ${
-                                isActive 
-                                ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-200' 
-                                : 'bg-slate-50 text-slate-600 hover:bg-slate-100'
-                            }">
-                        <span>${cat === 'ทั้งหมด' ? '🌐' : '🎓'}</span> ${cat}
+            if (type === 'summary') subject.summaries.splice(idx, 1);
+            if (type === 'exam') subject.exams.splice(idx, 1);
+
+            saveData();
+            render();
+        }
+
+        // --- Render หลัก ---
+        function render() {
+            // 1. Render Header Action Buttons & Breadcrumbs
+            const btnContainer = document.getElementById('headerActionButtons');
+            const breadcrumbNav = document.getElementById('breadcrumbNav');
+
+            if (!currentSelectedYear && !currentSelectedSubjectId) {
+                // อยู่หน้าหลัก (ชั้นปี)
+                btnContainer.innerHTML = `
+                    <button onclick="openModalAddCategory()" class="text-xs md:text-sm bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-4 py-2 rounded-xl flex items-center gap-1.5 shadow-sm transition">
+                        <span>➕</span> สร้างโฟลเดอร์ปีใหม่
                     </button>
                 `;
-            }).join('');
-
-            // 2. ค้นหา & กรอง
-            const searchKeyword = (document.getElementById('searchInput')?.value || '').trim().toLowerCase();
-            
-            let filteredSubjects = currentFilter === 'ทั้งหมด' 
-                ? subjects 
-                : subjects.filter(s => s.category === currentFilter);
-
-            if (searchKeyword) {
-                filteredSubjects = filteredSubjects.filter(sub => {
-                    const matchName = sub.name.toLowerCase().includes(searchKeyword);
-                    const matchSummary = (sub.summaries || []).some(s => s.title.toLowerCase().includes(searchKeyword));
-                    const matchExam = (sub.exams || []).some(e => e.title.toLowerCase().includes(searchKeyword));
-                    return matchName || matchSummary || matchExam;
-                });
-            }
-
-            // 3. สถิติ
-            let totalSummaries = 0, totalExams = 0;
-            filteredSubjects.forEach(s => {
-                totalSummaries += (s.summaries || []).length;
-                totalExams += (s.exams || []).length;
-            });
-            document.getElementById('statsSummary').innerHTML = `
-                <span>📁 <b>${filteredSubjects.length}</b> โฟลเดอร์</span>
-                <span>•</span>
-                <span class="text-emerald-600">📝 <b>${totalSummaries}</b> สรุป</span>
-                <span>•</span>
-                <span class="text-amber-600">🎯 <b>${totalExams}</b> ข้อสอบ</span>
-            `;
-
-            // 4. Render โฟลเดอร์แบบการ์ดสวยงาม
-            const container = document.getElementById('folderGrid');
-            if (filteredSubjects.length === 0) {
-                container.innerHTML = `
-                    <div class="col-span-full text-center py-16 bg-white rounded-3xl border border-dashed border-slate-200 p-8">
-                        <p class="text-4xl mb-2">📂</p>
-                        <p class="text-slate-600 font-semibold">ยังไม่มีโฟลเดอร์วิชาในส่วนนี้</p>
-                        <p class="text-xs text-slate-400 mt-1">แตะปุ่ม "+ สร้างโฟลเดอร์วิชา" ด้านบนเพื่อเริ่มสร้าง</p>
-                    </div>
+                breadcrumbNav.innerHTML = `
+                    <span class="text-indigo-600 font-bold flex items-center gap-1">🏠 หน้าหลัก (ชั้นปีทั้งหมด)</span>
                 `;
-                return;
+            } else if (currentSelectedYear && !currentSelectedSubjectId) {
+                // อยู่หน้ารวมวิชาของปีนั้น
+                btnContainer.innerHTML = `
+                    <button onclick="goToYearsView()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium px-3 py-2 rounded-xl transition">
+                        ⬅️ กลับหน้าชั้นปี
+                    </button>
+                    <button onclick="openAddSubjectModal()" class="text-xs md:text-sm bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-3.5 py-2 rounded-xl flex items-center gap-1.5 shadow-sm transition">
+                        <span>➕</span> เพิ่มวิชา
+                    </button>
+                `;
+                breadcrumbNav.innerHTML = `
+                    <a href="javascript:void(0)" onclick="goToYearsView()" class="hover:text-indigo-600">🏠 หน้าหลัก</a>
+                    <span>/</span>
+                    <span class="text-indigo-600 font-bold">🎓 ${currentSelectedYear}</span>
+                `;
+            } else if (currentSelectedSubjectId) {
+                // อยู่หน้าเนื้อหาในวิชา
+                const currentSub = subjects.find(s => s.id === currentSelectedSubjectId);
+                btnContainer.innerHTML = `
+                    <button onclick="goToSubjectsView('${currentSelectedYear}')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium px-3 py-2 rounded-xl transition">
+                        ⬅️ กลับหน้ารายวิชา
+                    </button>
+                `;
+                breadcrumbNav.innerHTML = `
+                    <a href="javascript:void(0)" onclick="goToYearsView()" class="hover:text-indigo-600">🏠 หน้าหลัก</a>
+                    <span>/</span>
+                    <a href="javascript:void(0)" onclick="goToSubjectsView('${currentSelectedYear}')" class="hover:text-indigo-600">🎓 ${currentSelectedYear}</a>
+                    <span>/</span>
+                    <span class="text-indigo-600 font-bold">📚 ${currentSub ? currentSub.name : ''}</span>
+                `;
             }
 
-            container.innerHTML = filteredSubjects.map((sub) => {
-                const sCount = (sub.summaries || []).length;
-                const eCount = (sub.exams || []).length;
-                const totalFiles = sCount + eCount;
+            // 2. Render หน้าจอตาม Level
+            if (!currentSelectedYear) {
+                renderYearsGrid();
+            } else if (!currentSelectedSubjectId) {
+                renderSubjectsGrid();
+            } else {
+                renderInsideSubject();
+            }
+        }
+
+        // Render Level 1: กริดชั้นปี
+        function renderYearsGrid() {
+            document.getElementById('yearsTotalCount').innerText = `${categories.length} โฟลเดอร์ชั้นปี`;
+            const grid = document.getElementById('yearsGrid');
+
+            grid.innerHTML = categories.map((cat, idx) => {
+                const yearSubjects = subjects.filter(s => s.category === cat);
+                let sumCount = 0, examCount = 0;
+                yearSubjects.forEach(s => {
+                    sumCount += (s.summaries || []).length;
+                    examCount += (s.exams || []).length;
+                });
 
                 return `
-                <div data-id="${sub.id}" onclick="openFolder('${sub.id}')" 
-                     class="folder-card bg-white p-5 rounded-3xl border border-slate-200 shadow-xs hover:shadow-md hover:border-indigo-300 transition cursor-pointer flex flex-col justify-between group relative">
+                <div data-id="${cat}" onclick="goToSubjectsView('${cat}')" 
+                     class="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs hover:shadow-md hover:border-indigo-300 transition cursor-pointer flex flex-col justify-between group relative">
                     
                     <div class="space-y-3">
                         <div class="flex items-start justify-between">
-                            <div class="w-12 h-12 rounded-2xl bg-amber-50 group-hover:bg-amber-100 flex items-center justify-center text-2xl transition">
+                            <div class="w-14 h-14 rounded-2xl bg-amber-50 group-hover:bg-amber-100 flex items-center justify-center text-3xl transition">
                                 📁
                             </div>
-                            <span class="drag-handle text-slate-300 hover:text-indigo-600 px-1 py-0.5 text-base select-none" onclick="event.stopPropagation()">☰</span>
+                            <div class="flex items-center gap-1" onclick="event.stopPropagation()">
+                                <button onclick="editCategory('${cat}')" class="text-slate-400 hover:text-indigo-600 p-1.5 rounded-lg text-xs" title="แก้ไขชื่อ">✏️</button>
+                                <button onclick="deleteCategory('${cat}')" class="text-slate-400 hover:text-rose-500 p-1.5 rounded-lg text-xs" title="ลบ">🗑️</button>
+                            </div>
                         </div>
 
                         <div>
-                            <span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-100/60">
-                                🎓 ${sub.category || 'ทั่วไป'}
-                            </span>
-                            <h3 class="font-bold text-slate-900 text-base mt-2 group-hover:text-indigo-600 transition truncate" title="${sub.name}">
-                                ${sub.name}
+                            <h3 class="font-bold text-slate-900 text-lg group-hover:text-indigo-600 transition flex items-center gap-2">
+                                🎓 ${cat}
                             </h3>
+                            <p class="text-xs text-slate-400 mt-1 font-medium">${yearSubjects.length} รายวิชาในแฟ้มนี้</p>
                         </div>
                     </div>
 
                     <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
                         <div class="flex items-center gap-2">
-                            <span class="flex items-center gap-1 text-emerald-600 font-medium">📝 ${sCount}</span>
+                            <span class="text-emerald-600 font-medium">📝 ${sumCount}</span>
                             <span>•</span>
-                            <span class="flex items-center gap-1 text-amber-600 font-medium">🎯 ${eCount}</span>
+                            <span class="text-amber-600 font-medium">🎯 ${examCount}</span>
                         </div>
-                        <span class="font-semibold text-indigo-600 group-hover:translate-x-0.5 transition flex items-center">
-                            เปิดแฟ้ม ➔
+                        <span class="font-semibold text-indigo-600 group-hover:translate-x-0.5 transition">
+                            เปิดโฟลเดอร์ ➔
                         </span>
                     </div>
 
                 </div>
                 `;
             }).join('');
-
-            // Sortable ให้ตารางโฟลเดอร์
-            new Sortable(container, {
-                handle: '.drag-handle',
-                animation: 200,
-                ghostClass: 'sortable-ghost',
-                onEnd: function () {
-                    const orderedIds = Array.from(container.children).map(c => c.getAttribute('data-id'));
-                    if (currentFilter === 'ทั้งหมด') {
-                        subjects.sort((a, b) => orderedIds.indexOf(a.id) - orderedIds.indexOf(b.id));
-                    }
-                    saveData();
-                }
-            });
         }
 
+        // Render Level 2: กริดวิชาในชั้นปี
+        function renderSubjectsGrid() {
+            document.getElementById('currentYearTitle').innerText = `🎓 ${currentSelectedYear}`;
+            const yearSubs = subjects.filter(s => s.category === currentSelectedYear);
+            document.getElementById('currentYearSubtitle').innerText = `มีทั้งหมด ${yearSubs.length} วิชาในชั้นปีนี้`;
+
+            const grid = document.getElementById('subjectsGrid');
+            if (yearSubs.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-full text-center py-16 bg-white rounded-3xl border border-dashed border-slate-200 p-8">
+                        <p class="text-4xl mb-2">📂</p>
+                        <p class="text-slate-600 font-semibold">ยังไม่มีวิชาในโฟลเดอร์ "${currentSelectedYear}"</p>
+                        <p class="text-xs text-slate-400 mt-1">กดปุ่ม "+ เพิ่มวิชาในชั้นปีนี้" ด้านบนเพื่อเริ่มสร้าง</p>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = yearSubs.map(sub => {
+                const sCount = (sub.summaries || []).length;
+                const eCount = (sub.exams || []).length;
+
+                return `
+                <div data-id="${sub.id}" onclick="goToInsideSubjectView('${sub.id}')" 
+                     class="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs hover:shadow-md hover:border-indigo-300 transition cursor-pointer flex flex-col justify-between group">
+                    
+                    <div class="space-y-3">
+                        <div class="flex items-start justify-between">
+                            <div class="w-12 h-12 rounded-2xl bg-indigo-50 group-hover:bg-indigo-100 flex items-center justify-center text-2xl transition">
+                                📚
+                            </div>
+                            <span class="text-[11px] font-semibold px-2 py-0.5 rounded-lg bg-slate-100 text-slate-600">
+                                ${sCount + eCount} รายการ
+                            </span>
+                        </div>
+
+                        <div>
+                            <h3 class="font-bold text-slate-900 text-base group-hover:text-indigo-600 transition truncate" title="${sub.name}">
+                                ${sub.name}
+                            </h3>
+                            <p class="text-xs text-slate-400 mt-0.5">แตะเพื่อเปิดดูสรุป & ข้อสอบ</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+                        <div class="flex items-center gap-2">
+                            <span class="text-emerald-600 font-medium">📝 ${sCount} สรุป</span>
+                            <span>•</span>
+                            <span class="text-amber-600 font-medium">🎯 ${eCount} ข้อสอบ</span>
+                        </div>
+                        <span class="font-semibold text-indigo-600 group-hover:translate-x-0.5 transition">
+                            เข้าสู่บทเรียน ➔
+                        </span>
+                    </div>
+
+                </div>
+                `;
+            }).join('');
+        }
+
+        // Render Level 3: เนื้อหาข้างในวิชา
+        function renderInsideSubject() {
+            const sub = subjects.find(s => s.id === currentSelectedSubjectId);
+            if (!sub) {
+                goToSubjectsView(currentSelectedYear);
+                return;
+            }
+
+            document.getElementById('insideSubjectTitle').innerText = sub.name;
+            document.getElementById('insideSubjectYearBadge').innerText = `🎓 ${sub.category}`;
+
+            const sumCount = (sub.summaries || []).length;
+            const exCount = (sub.exams || []).length;
+            document.getElementById('subjectSummaryCount').innerText = sumCount;
+            document.getElementById('subjectExamCount').innerText = exCount;
+
+            // สรุป
+            const sumList = document.getElementById('subjectSummariesList');
+            if (sumCount === 0) {
+                sumList.innerHTML = `<p class="text-xs text-slate-400 italic py-6 text-center bg-white/60 rounded-2xl border border-emerald-100">ยังไม่มีลิงก์สรุปในวิชานี้</p>`;
+            } else {
+                sumList.innerHTML = sub.summaries.map((item, idx) => `
+                    <div data-index="${idx}" class="flex items-center justify-between p-3 rounded-2xl bg-white hover:bg-emerald-50/60 border border-slate-200/80 transition shadow-2xs gap-2">
+                        <span class="link-handle drag-handle text-slate-300 hover:text-emerald-600 px-1 select-none text-base">☰</span>
+                        <a href="${item.url}" target="_blank" class="text-xs md:text-sm text-slate-800 hover:text-emerald-700 truncate flex-1 font-medium flex items-center gap-1.5">
+                            <span>📄</span> <span class="truncate">${item.title}</span>
+                        </a>
+                        <button onclick="deleteLink('summary', ${idx})" class="text-slate-300 hover:text-rose-500 ml-1 text-xs px-2 py-1">✕</button>
+                    </div>
+                `).join('');
+
+                new Sortable(sumList, {
+                    handle: '.link-handle',
+                    animation: 150,
+                    ghostClass: 'sortable-ghost',
+                    onEnd: function () {
+                        const newIndices = Array.from(sumList.children).map(c => parseInt(c.getAttribute('data-index')));
+                        sub.summaries = newIndices.map(i => sub.summaries[i]).filter(Boolean);
+                        saveData();
+                        renderInsideSubject();
+                    }
+                });
+            }
+
+            // ข้อสอบ
+            const exList = document.getElementById('subjectExamsList');
+            if (exCount === 0) {
+                exList.innerHTML = `<p class="text-xs text-slate-400 italic py-6 text-center bg-white/60 rounded-2xl border border-amber-100">ยังไม่มีลิงก์ข้อสอบในวิชานี้</p>`;
+            } else {
+                exList.innerHTML = sub.exams.map((item, idx) => `
+                    <div data-index="${idx}" class="flex items-center justify-between p-3 rounded-2xl bg-white hover:bg-amber-50/60 border border-slate-200/80 transition shadow-2xs gap-2">
+                        <span class="link-handle drag-handle text-slate-300 hover:text-amber-600 px-1 select-none text-base">☰</span>
+                        <a href="${item.url}" target="_blank" class="text-xs md:text-sm text-slate-800 hover:text-amber-800 truncate flex-1 font-medium flex items-center gap-1.5">
+                            <span>✏️</span> <span class="truncate">${item.title}</span>
+                        </a>
+                        <button onclick="deleteLink('exam', ${idx})" class="text-slate-300 hover:text-rose-500 ml-1 text-xs px-2 py-1">✕</button>
+                    </div>
+                `).join('');
+
+                new Sortable(exList, {
+                    handle: '.link-handle',
+                    animation: 150,
+                    ghostClass: 'sortable-ghost',
+                    onEnd: function () {
+                        const newIndices = Array.from(exList.children).map(c => parseInt(c.getAttribute('data-index')));
+                        sub.exams = newIndices.map(i => sub.exams[i]).filter(Boolean);
+                        saveData();
+                        renderInsideSubject();
+                    }
+                });
+            }
+        }
+
+        // เริ่มโหลดข้อมูลจาก Google Drive
         loadDataFromGoogleDrive();
     </script>
 </body>
