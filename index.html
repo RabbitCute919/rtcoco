@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>คลังสรุป & ข้อสอบรายวิชา (v6.2.0)</title>
+    <title>คลังสรุป & ข้อสอบรายวิชา (v6.3.0)</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -39,8 +39,8 @@
                     <div>
                         <div class="flex items-center gap-2">
                             <h1 class="text-base md:text-lg font-bold text-slate-900 leading-tight">คลังแฟ้มเอกสารการเรียน</h1>
-                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 border border-slate-200" title="เวอร์ชันของระบบ">
-                                v6.2.0
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 border border-slate-200">
+                                v6.3.0
                             </span>
                             <span id="roleBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
                                 👤 เจ้าของคลัง
@@ -146,7 +146,7 @@
 
     <!-- Footer บอกเวอร์ชัน -->
     <footer class="text-center py-6 text-xs text-slate-400 border-t border-slate-200/60 mt-12 bg-white">
-        <p>คลังแฟ้มเอกสารการเรียน • Version <span class="font-semibold text-slate-600">6.2.0</span></p>
+        <p>คลังแฟ้มเอกสารการเรียน • Version <span class="font-semibold text-slate-600">6.3.0</span></p>
         <p class="text-[10px] text-slate-400 mt-0.5">เชื่อมต่อกับ Google Drive & Cloud Database</p>
     </footer>
 
@@ -384,7 +384,6 @@
             });
         }
 
-        // โหลดข้อมูลแบบ Background Non-Blocking (ไม่ทำให้หน้าจอค้าง)
         async function loadDataFromGoogleDrive() {
             if (isViewOnlyMode) {
                 const badge = document.getElementById('roleBadge');
@@ -400,7 +399,7 @@
                 }
             }
 
-            // ถ้ามี locked parameters ให้เปิดตรงจุดนั้นทันที
+            // ถ้ามี locked parameters ให้ตั้งค่าเริ่มต้น
             if (lockedSubject) {
                 const foundSub = subjects.find(s => s.id === lockedSubject || s.name === lockedSubject);
                 if (foundSub) {
@@ -413,7 +412,6 @@
 
             render();
 
-            // ดึงข้อมูลจาก Cloud
             try {
                 updateSyncStatus('syncing', 'กำลังซิงก์ Google Drive...');
                 const res = await fetch(GOOGLE_SCRIPT_URL);
@@ -427,7 +425,6 @@
 
                 updateSyncStatus('success', 'เชื่อมต่อข้อมูลสำเร็จ');
 
-                // re-check locked subject after cloud load
                 if (lockedSubject) {
                     const foundSub = subjects.find(s => s.id === lockedSubject || s.name === lockedSubject);
                     if (foundSub) {
@@ -465,7 +462,7 @@
         }
 
         function handleLogoClick() {
-            // ถ้าน้องถูกล็อคโฟลเดอร์ไว้ จะไม่ยอมให้กดกลับหน้าหลักรวม
+            // ถ้าแชร์เฉพาะปีหรือวิชา จะไม่ยอมให้กดกลับหน้าหลัก
             if (lockedYear || lockedSubject) return;
             goToYearsView();
         }
@@ -537,7 +534,7 @@
 
         // --- Navigation ---
         function goToYearsView() {
-            if (lockedYear || lockedSubject) return; // ล็อคไม่ให้ข้ามออก
+            if (lockedYear || lockedSubject) return; // บล็อกไม่ให้ย้อนออก
             currentSelectedYear = null;
             currentSelectedSubjectId = null;
             document.getElementById('viewYears').classList.remove('hidden');
@@ -547,7 +544,7 @@
         }
 
         function goToSubjectsView(yearName) {
-            if (lockedSubject) return; // ล็อคไม่ให้ข้ามออก
+            if (lockedSubject) return; // บล็อกไม่ให้ย้อนออก
             currentSelectedYear = yearName;
             currentSelectedSubjectId = null;
             document.getElementById('viewYears').classList.add('hidden');
@@ -1010,7 +1007,7 @@
                 `;
                 renderYearsGrid();
             } else if (currentSelectedYear && !currentSelectedSubjectId) {
-                // ถ้าน้องถูกล็อคให้อยู่ปีนี้ จะไม่แสดงปุ่มย้อนกลับหน้าปีอื่น
+                // ถ้าแชร์ชั้นปีไว้ จะไม่แสดงปุ่มย้อนกลับ และแถบนำทางจะไม่เป็นลิงก์ย้อน
                 btnContainer.innerHTML = lockedYear ? '' : `
                     <button onclick="goToYearsView()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium px-3 py-2 rounded-xl transition">
                         ⬅️ กลับหน้าชั้นปี
@@ -1034,7 +1031,7 @@
                 breadcrumbNav.innerHTML = lockedSubject ? `
                     <span class="text-indigo-600 font-bold">📚 ${currentSub ? currentSub.name : ''} (โหมดแชร์เฉพาะวิชานี้)</span>
                 ` : (lockedYear ? `
-                    <a href="javascript:void(0)" onclick="goToSubjectsView('${currentSelectedYear}')" class="hover:text-indigo-600">🎓 ${currentSelectedYear}</a>
+                    <a href="javascript:void(0)" onclick="goToSubjectsView('${currentSelectedYear}')" class="text-indigo-600 font-bold hover:underline">🎓 ${currentSelectedYear}</a>
                     <span>/</span>
                     <span class="text-indigo-600 font-bold">📚 ${currentSub ? currentSub.name : ''}</span>
                 ` : `
